@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Avatar TEA — Professores do Espectro Autista</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <!-- Avatar -->
+      <div class="avatar-wrapper">
+        <div class="avatar-container state-aguardando" id="avatarContainer">
+          <video
+            class="avatar-video active"
+            id="vidAguardando"
+            loop
+            muted
+            playsinline
+          ></video>
+          <video
+            class="avatar-video"
+            id="vidPensando"
+            loop
+            muted
+            playsinline
+          ></video>
+          <video
+            class="avatar-video"
+            id="vidComunicando"
+            loop
+            muted
+            playsinline
+          ></video>
+
+          <div class="avatar-placeholder" id="placeholder">
+            <span class="avatar-icon" id="avatarIcon">🤖</span>
+            <span class="placeholder-label">carregando vídeo...</span>
+          </div>
+
+          <div class="status-badge" id="statusBadge">
+            <span class="status-dot"></span>
+            <span id="statusText">aguardando</span>
+          </div>
+        </div>
+
+        <div class="avatar-title">
+          Avatar para auxiliar professores de alunos <br /><span
+            >do Espectro Autista</span
+          >
+        </div>
+      </div>
+
+      <!-- Chat -->
+      <div class="chat-box">
+        <div class="messages" id="messages">
+          <div class="msg avatar">
+            Olá! Sou a LORA, assistente educacional do ensino especial para
+            professores que trabalham com alunos do espectro autista. Como posso
+            te ajudar?
+          </div>
+        </div>
+
+        <div class="voice-row">
+          <label for="voiceSelect">Voz:</label>
+          <select id="voiceSelect"></select>
+        </div>
+
+        <div class="input-row">
+          <input
+            type="text"
+            id="userInput"
+            placeholder="Digite sua pergunta..."
+            autocomplete="off"
+          />
+          <button class="btn-primary" id="btnEnviar">Enviar</button>
+        </div>
+      </div>
+
+      <!-- Botões de demonstração -->
+      <div class="demo-section">
+        <div class="demo-label">Demonstração de estados</div>
+        <div class="demo-buttons">
+          <button
+            onclick="
+              demoFalar(
+                'Olá! Estou aqui para ajudar professores que trabalham com alunos do espectro autista. Pode me fazer qualquer pergunta.',
+              )
+            "
+          >
+            Falar
+          </button>
+          <button onclick="setPensando()">Pensando</button>
+          <button onclick="setAguardando()">Aguardando</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="avatar.js"></script>
+  </body>
+</html>
