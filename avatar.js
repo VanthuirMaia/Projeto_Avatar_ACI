@@ -203,7 +203,7 @@ function enviar() {
     adicionarMensagem(resposta, "avatar");
     falar(resposta);
     btnEnviar.disabled = false;
-  }, 1500);
+  }, 3500);
 }
 
 btnEnviar.addEventListener("click", enviar);
