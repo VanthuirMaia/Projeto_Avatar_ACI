@@ -73,13 +73,18 @@ npm run dev
 ## Endpoints da API
 
 ### `POST /search`
+
 Chat com o assistente — responde perguntas pedagógicas sobre inclusão.
 
 ```json
-{ "topic": "Como adaptar atividades para alunos com TEA?", "age_group": "6 a 10 anos" }
+{
+  "topic": "Como adaptar atividades para alunos com TEA?",
+  "age_group": "6 a 10 anos"
+}
 ```
 
 ### `POST /adapt`
+
 Adapta um texto de atividade para o perfil de um aluno específico.
 
 ```json
@@ -94,13 +99,20 @@ Adapta um texto de atividade para o perfil de um aluno específico.
 ```
 
 ### `POST /suggest-pei`
+
 Gera sugestões de PEI (objetivos, estratégias, recursos, avaliações).
 
 ```json
-{ "diagnostico": "TEA", "serie": "5º Ano", "observacoes": "...", "age_group": "6 a 10 anos" }
+{
+  "diagnostico": "TEA",
+  "serie": "5º Ano",
+  "observacoes": "...",
+  "age_group": "6 a 10 anos"
+}
 ```
 
 ### `GET /health`
+
 Status do servidor e do índice RAG.
 
 ## Fluxo interno da API
@@ -111,16 +123,18 @@ Status do servidor e do índice RAG.
 
 ## Status das fases
 
-| Fase | Descrição | Status |
-|------|-----------|--------|
-| 1 | Integração frontend ↔ backend | ✅ Concluída |
-| 2 | Retreinamento NLU com conteúdo TEA | ✅ Concluída |
-| 3 | RAG com OpenAI (numpy vector store) | ✅ Concluída |
-| 4 | Avatar ElevenLabs + lip sync | 🔲 Pendente |
-| 5 | Deploy VPS (Docker + Nginx) | 🔲 Pendente |
+| Fase | Descrição                           | Status       |
+| ---- | ----------------------------------- | ------------ |
+| 1    | Integração frontend ↔ backend       | ✅ Concluída |
+| 2    | Retreinamento NLU com conteúdo TEA  | ✅ Concluída |
+| 3    | RAG com OpenAI (numpy vector store) | ✅ Concluída |
+| 4    | Avatar ElevenLabs + lip sync        | 🔲 Pendente  |
+| 5    | Deploy VPS (Docker + Nginx)         | 🔲 Pendente  |
 
 ## Equipe
 
-- **João** — backend Flask + NLU (base)
+- **Renata Freire** — PO e Coordenadora do Projeto
+- **Bruno Morato** — Gerente de Projetos
+- **João Araújo** — backend Flask + NLU (base)
 - **Ana** — frontend Next.js (base)
-- **Vanthuir** — integração, RAG, regra de negócio, retreinamento NLU
+- **Vanthuir Maia** — integração, RAG, regra de negócio, retreinamento NLU
