@@ -1,0 +1,10 @@
+flask
+flask-cors
+torch
+gensim
+google-generativeai
+grpcio
+nltk
+openai
+pdfplumber
+numpy

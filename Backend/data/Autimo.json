@@ -1,0 +1,147 @@
+{
+    "intents": [
+        {
+            "tag": "autismo_geral",
+            "patterns": [
+                "O que é autismo?",
+                "Explique o transtorno do espectro autista",
+                "Me fale sobre o TEA",
+                "Definição de autismo",
+                "Autismo significa o quê?"
+            ],
+            "responses": [
+                "O autismo, ou transtorno do espectro autista (TEA), é uma condição do neurodesenvolvimento que afeta a comunicação, o comportamento e as interações sociais."
+            ]
+        },
+        {
+            "tag": "caracteristicas",
+            "patterns": [
+                "Quais são as características do autismo?",
+                "Sinais de autismo",
+                "Sintomas do espectro autista",
+                "Como identificar o autismo?",
+                "Comportamentos comuns em autistas"
+            ],
+            "responses": [
+                "As características do autismo incluem dificuldades na comunicação social, padrões restritos e repetitivos de comportamento, interesses intensos e, às vezes, sensibilidade sensorial."
+            ]
+        },
+        {
+            "tag": "diagnostico",
+            "patterns": [
+                "Como é feito o diagnóstico de autismo?",
+                "Quem pode diagnosticar o TEA?",
+                "Existe exame para autismo?",
+                "Como saber se a criança é autista?",
+                "Diagnóstico do espectro autista"
+            ],
+            "responses": [
+                "O diagnóstico do autismo é clínico, baseado na observação do comportamento e histórico do desenvolvimento. É feito por profissionais como psiquiatras, psicólogos ou neurologistas."
+            ]
+        },
+        {
+            "tag": "tratamento",
+            "patterns": [
+                "Existe tratamento para autismo?",
+                "Como tratar o TEA?",
+                "Quais terapias ajudam autistas?",
+                "Tratamento para espectro autista",
+                "Como ajudar uma criança com autismo?"
+            ],
+            "responses": [
+                "Não há cura para o autismo, mas intervenções como terapias comportamentais, fonoaudiologia, terapia ocupacional e apoio educacional ajudam no desenvolvimento e bem-estar."
+            ]
+        },
+        {
+            "tag": "intervencao_precoce",
+            "patterns": [
+                "Qual a importância da intervenção precoce no autismo?",
+                "O que é intervenção precoce?",
+                "Quanto antes começar o tratamento, melhor?",
+                "Quando iniciar terapias no TEA?",
+                "Intervenção precoce melhora o prognóstico?"
+            ],
+            "responses": [
+                "A intervenção precoce é essencial no autismo, pois aumenta significativamente as chances de desenvolvimento das habilidades sociais, cognitivas e comunicativas."
+            ]
+        },
+        {
+            "tag": "alimentacao_autismo",
+            "patterns": [
+                "A alimentação influencia no autismo?",
+                "Autistas têm seletividade alimentar?",
+                "Quais cuidados com a alimentação no TEA?",
+                "Existe dieta especial para autistas?",
+                "Autismo e alimentação"
+            ],
+            "responses": [
+                "Pessoas com autismo podem apresentar seletividade alimentar e sensibilidades sensoriais. Uma alimentação equilibrada, acompanhada por nutricionistas, pode ajudar no bem-estar geral."
+            ]
+        },
+        {
+            "tag": "comunicacao_alternativa",
+            "patterns": [
+                "O que é comunicação alternativa?",
+                "Como autistas não verbais se comunicam?",
+                "Pessoas com TEA podem usar figuras para falar?",
+                "Quais recursos ajudam na comunicação de autistas?",
+                "Autismo e comunicação aumentativa"
+            ],
+            "responses": [
+                "A comunicação alternativa e aumentativa inclui métodos como pictogramas, aplicativos e gestos, que ajudam pessoas não verbais ou com dificuldade de fala a se comunicarem de forma eficaz."
+            ]
+        },
+        {
+            "tag": "autismo_adulto",
+            "patterns": [
+                "Como é o autismo em adultos?",
+                "Autismo pode ser diagnosticado na fase adulta?",
+                "Adultos autistas têm apoio?",
+                "Autismo é só em criança?",
+                "Quais os desafios de um adulto com autismo?"
+            ],
+            "responses": [
+                "O autismo também afeta adultos, embora muitas vezes não tenha sido diagnosticado na infância. O suporte adequado é essencial ao longo de toda a vida, incluindo no ambiente de trabalho e nas relações sociais."
+            ]
+        },
+        {
+            "tag": "comorbidades_autismo",
+            "patterns": [
+                "Quais condições estão associadas ao autismo?",
+                "Autistas podem ter TDAH?",
+                "Autismo vem com outros transtornos?",
+                "Comorbidades comuns no TEA",
+                "Autismo e ansiedade"
+            ],
+            "responses": [
+                "Muitas pessoas com autismo apresentam comorbidades, como TDAH, ansiedade, depressão, epilepsia ou dificuldades sensoriais. Um acompanhamento multidisciplinar é fundamental."
+            ]
+        },
+        {
+            "tag": "mitos_autismo",
+            "patterns": [
+                "Quais são os mitos sobre o autismo?",
+                "Autistas não sentem emoções?",
+                "Autismo é causado por vacinas?",
+                "Autismo tem cura?",
+                "Mitos e verdades sobre TEA"
+            ],
+            "responses": [
+                "Existem muitos mitos sobre o autismo. Por exemplo, não é verdade que vacinas causam autismo ou que pessoas autistas não sentem emoções. É importante combater a desinformação com conhecimento."
+            ]
+        },
+        {
+            "tag": "sensibilidade_sensorial",
+            "patterns": [
+                "O que é sensibilidade sensorial no autismo?",
+                "Autistas têm problema com barulho?",
+                "Quais estímulos incomodam autistas?",
+                "TEA e sensibilidade a luz",
+                "Autistas podem se incomodar com sons?"
+            ],
+            "responses": [
+                "Muitas pessoas com autismo têm hipersensibilidade ou hipossensibilidade a estímulos sensoriais, como sons, luzes, texturas e cheiros. Isso pode afetar o conforto e o comportamento no dia a dia."
+            ]
+        }
+    ]
+}

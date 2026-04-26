@@ -1,104 +1,126 @@
-# Avatar TEA — Professores do Espectro Autista
+# AvaTEA — Assistente Educacional para Inclusão
 
-Protótipo de avatar animado com 3 estados e voz via Web Speech API.
+Sistema de apoio pedagógico com avatar inteligente, desenvolvido como atividade de Mestrado em Aplicações em Computação Inteligente (ACI) na UPE.
 
-## Estrutura
+Auxilia professores do ensino básico a adaptar atividades e elaborar PEIs para alunos com TEA, TDAH, Dislexia e outras necessidades educacionais especiais.
+
+## Arquitetura
 
 ```
-avatar-tea/
-├── index.html
-├── style.css
-├── avatar.js
-└── videos/
-    ├── aguardando.mp4
-    ├── pensando.mp4
-    └── comunicando.mp4
+Projeto_ACI/
+├── Backend/              # Flask API — Python
+│   ├── src/
+│   │   ├── apiv2.py      # API ativa (porta 5022)
+│   │   ├── nlu.py        # classificador de intenção (attention)
+│   │   ├── rag.py        # RAG com numpy + OpenAI embeddings
+│   │   ├── ingest.py     # indexação dos PDFs
+│   │   └── utils2.py     # tokenização e helpers NLU
+│   └── data/
+│       ├── intents.json  # base de conhecimento TEA/inclusão
+│       └── rag_store/    # índice vetorial (gerado pelo ingest.py)
+│
+├── Frontend/             # Next.js — TypeScript
+│   └── app/
+│       ├── (dashboard)/
+│       │   ├── assistant/          # chat com assistente IA
+│       │   ├── activity-adaptation/ # adaptação de atividades
+│       │   └── pei-editor/         # editor de PEI
+│       ├── mock/data.ts            # dados de alunos de exemplo
+│       └── utils/api.ts            # chamadas ao backend
+│
+├── docs_RAG_TEA/         # 18 PDFs de literatura especializada
+├── videos/               # assets do avatar (aguardando/pensando/comunicando)
+└── index.html            # protótipo inicial do avatar (legado)
 ```
 
-## Como usar
+## Como rodar
 
-### Localmente
+### Pré-requisitos
 
-Abra `index.html` no navegador. Coloque seus vídeos na pasta `videos/` com os nomes corretos.
+- Python 3.10+ com `.venv` ativado
+- Node.js 18+
+- Chave de API OpenAI (ou OpenRouter com `OPENAI_BASE_URL`)
 
-> Atenção: por segurança do browser, abra via servidor local e não clicando direto no arquivo.
-> Use a extensão **Live Server** no VS Code, ou rode:
->
-> ```bash
-> python -m http.server 8000
-> ```
->
-> Depois acesse `http://localhost:8000`
+### Backend
 
-### GitHub Pages
+```bash
+cd Backend
 
-1. Faça o push do projeto para um repositório no GitHub
-2. Vá em **Settings > Pages**
-3. Em **Source**, selecione a branch `main` e pasta `/ (root)`
-4. Acesse via `https://<seu-usuario>.github.io/<nome-do-repo>/`
+# 1. Instalar dependências
+pip install -r requirements.txt
 
-> Os vídeos precisam estar commitados na pasta `videos/` junto com o código.
+# 2. Configurar variáveis de ambiente (Windows)
+$env:OPENAI_API_KEY = "sk-..."
 
-## Estados do avatar
+# 3. Indexar documentos RAG (rodar uma vez)
+cd src
+python ingest.py
 
-| Estado      | Arquivo                  | Quando ativa          |
-| ----------- | ------------------------ | --------------------- |
-| Aguardando  | `videos/aguardando.mp4`  | Idle, esperando input |
-| Pensando    | `videos/pensando.mp4`    | Processando resposta  |
-| Comunicando | `videos/comunicando.mp4` | Falando com TTS       |
-
-## Integração com LLM
-
-No `avatar.js`, localize o bloco `setTimeout` dentro da função `enviar()` e substitua pela chamada real:
-
-```javascript
-// Substituir isso:
-setTimeout(() => {
-  const resposta = respostas[Math.floor(Math.random() * respostas.length)];
-  adicionarMensagem(resposta, "avatar");
-  falar(resposta);
-  btnEnviar.disabled = false;
-}, 1500);
-
-// Por isso (exemplo com fetch):
-const res = await fetch("/api/chat", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ mensagem: texto }),
-});
-const { resposta } = await res.json();
-adicionarMensagem(resposta, "avatar");
-falar(resposta);
-btnEnviar.disabled = false;
+# 4. Subir a API
+python apiv2.py
+# → http://localhost:5022
 ```
 
-## Integração com ElevenLabs (próxima etapa)
+### Frontend
 
-Substitua a função `falar()` no `avatar.js`:
+```bash
+cd Frontend
+npm install
+npm run dev
+# → http://localhost:3000
+```
 
-```javascript
-async function falar(texto) {
-  setComunicando();
+## Endpoints da API
 
-  const res = await fetch(
-    "https://api.elevenlabs.io/v1/text-to-speech/<voice_id>",
-    {
-      method: "POST",
-      headers: {
-        "xi-api-key": "SUA_KEY",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ text: texto, model_id: "eleven_multilingual_v2" }),
-    },
-  );
+### `POST /search`
+Chat com o assistente — responde perguntas pedagógicas sobre inclusão.
 
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const audio = new Audio(url);
+```json
+{ "topic": "Como adaptar atividades para alunos com TEA?", "age_group": "6 a 10 anos" }
+```
 
-  audio.onplay = () => setComunicando();
-  audio.onended = () => setAguardando();
-  audio.play();
+### `POST /adapt`
+Adapta um texto de atividade para o perfil de um aluno específico.
+
+```json
+{
+  "texto_original": "Leia e responda...",
+  "diagnostico": "TEA",
+  "serie": "5º Ano",
+  "observacoes": "Prefere atividades estruturadas",
+  "adaptacoes_preferidas": ["Linguagem simplificada", "Recursos visuais"],
+  "age_group": "6 a 10 anos"
 }
 ```
-# Projeto_Avatar_ACI
+
+### `POST /suggest-pei`
+Gera sugestões de PEI (objetivos, estratégias, recursos, avaliações).
+
+```json
+{ "diagnostico": "TEA", "serie": "5º Ano", "observacoes": "...", "age_group": "6 a 10 anos" }
+```
+
+### `GET /health`
+Status do servidor e do índice RAG.
+
+## Fluxo interno da API
+
+1. **NLU** — classifica a intenção da pergunta (modelo attention treinado com `intents.json`)
+2. **RAG** — recupera trechos relevantes dos 18 PDFs via similaridade de cosseno (numpy + `text-embedding-3-small`)
+3. **GPT-4o** — gera resposta final contextualizada com o RAG + perfil do aluno
+
+## Status das fases
+
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| 1 | Integração frontend ↔ backend | ✅ Concluída |
+| 2 | Retreinamento NLU com conteúdo TEA | ✅ Concluída |
+| 3 | RAG com OpenAI (numpy vector store) | ✅ Concluída |
+| 4 | Avatar ElevenLabs + lip sync | 🔲 Pendente |
+| 5 | Deploy VPS (Docker + Nginx) | 🔲 Pendente |
+
+## Equipe
+
+- **João** — backend Flask + NLU (base)
+- **Ana** — frontend Next.js (base)
+- **Vanthuir** — integração, RAG, regra de negócio, retreinamento NLU

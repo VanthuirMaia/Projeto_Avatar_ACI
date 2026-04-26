@@ -1,0 +1,394 @@
+{
+  "intents": [
+    {
+      "tag": "introducao_pc",
+      "patterns": [
+        "O que é pensamento computacional?",
+        "Explique o pensamento computacional.",
+        "Me fale sobre pensamento computacional.",
+        "Definição de pensamento computacional.",
+        "O que significa pensamento computacional?",
+        "O que é PC?",
+        "O que significa PC?",
+        "Pode me explicar o que é pensamento computacional?",
+        "Qual a definição de pensamento computacional?",
+        "Para que serve o pensamento computacional?",
+        "Você pode falar sobre pensamento computacional?",
+        "Pensamento computacional é o que?",
+        "Qual a importância do pensamento computacional?",
+        "Me ensine sobre pensamento computacional.",
+        "Como funciona o pensamento computacional?",
+        "Por que estudar pensamento computacional?",
+        "O que envolve o pensamento computacional?",
+        "Pensamento computacional é só programação?",
+        "Pensamento computacional serve para o dia a dia?",
+        "Como aplicar pensamento computacional?"
+      ],
+      "responses": [
+        {
+          "level": "Nível 1",
+          "text": "O pensamento computacional é uma abordagem para solucionar problemas de forma eficiente, inspirada na maneira como os cientistas da computação pensam. Ele envolve quatro pilares principais: decompor um problema complexo em partes menores, reconhecer padrões para encontrar soluções existentes, usar a abstração para focar no essencial, e criar algoritmos (passos lógicos) para resolver o problema. É uma habilidade transversal que vai muito além da programação."
+        },
+        {
+          "level": "Nível 2",
+          "text": "Pensamento computacional é uma forma de resolver problemas de um jeito lógico e organizado. Pense em como você faria para arrumar seu quarto: você não faz tudo de uma vez. Primeiro tira a roupa do chão, depois arruma a cama, e assim por diante. É sobre dividir tarefas, achar o que se repete, focar no importante e criar uma lista de passos para chegar lá. É uma 'ferramenta de pensar' para o dia a dia."
+        },
+        {
+          "level": "Nível 3",
+          "text": "Pensamento computacional é organizar a mente para resolver problemas. É como ter um plano para cada coisa. Você divide um problema grande em pedaços pequenos. Você percebe coisas que acontecem sempre igual. Você foca no principal. E você cria passos, um depois do outro, para chegar a uma solução. É um jeito claro de pensar."
+        }
+      ]
+    },
+    {
+      "tag": "decomposicao_problemas",
+      "patterns": [
+        "O que é decomposição de problemas?",
+        "Como funciona a decomposição de problemas?",
+        "Fale sobre decomposição no pensamento computacional.",
+        "Definição de decomposição de problemas.",
+        "Por que usar decomposição para resolver problemas?",
+        "Explique a técnica de decomposição de problemas.",
+        "Para que serve decompor problemas?",
+        "Como dividir problemas complexos em partes menores?",
+        "Qual a vantagem de decompor um problema?",
+        "Quando usar decomposição de problemas?",
+        "Como a decomposição ajuda a resolver desafios?",
+        "Decomposição de problemas é importante?",
+        "Me explique a decomposição no contexto de computação.",
+        "Como quebrar um problema em pedaços menores?",
+        "Decompor problema é dividir em etapas?",
+        "Como resolver problemas grandes com decomposição?",
+        "Qual a função da decomposição de problemas?",
+        "Decomposição ajuda na organização das soluções?",
+        "Quais são os benefícios da decomposição de problemas?",
+        "Como usar decomposição para facilitar a solução?"
+      ],
+      "responses": [
+        {
+          "level": "Nível 1",
+          "text": "A decomposição de problemas é a estratégia de quebrar um problema complexo e intimidador em partes menores, mais simples e gerenciáveis. Cada subproblema pode então ser resolvido individualmente. Essa abordagem não só facilita o entendimento do todo, mas também torna a solução mais viável, permitindo focar em uma peça de cada vez e integrar as soluções no final. É um pilar fundamental para abordar qualquer desafio de engenharia ou programação."
+        },
+        {
+          "level": "Nível 2",
+          "text": "Decompor um problema significa pegar um desafio grande e dividi-lo em pedaços menores. Por exemplo, se você precisa fazer um trabalho da escola, você não faz tudo de uma vez. Você pode dividir em: pesquisar, escrever, revisar. Cada pedaço é mais fácil de lidar sozinho. Isso torna o problema menos assustador e mais fácil de resolver passo a passo."
+        },
+        {
+          "level": "Nível 3",
+          "text": "Decompor problema é dividir um problema grande em muitos pequenos. É como quebrar um bolo em fatias. Cada fatia é mais fácil de comer. Faz o problema ficar mais fácil de resolver."
+        }
+      ]
+    },
+    {
+      "tag": "reconhecimento_padroes",
+      "patterns": [
+        "O que é reconhecimento de padrões?",
+        "Fale sobre o reconhecimento de padrões.",
+        "Explique como padrões são usados no pensamento computacional.",
+        "Qual o papel dos padrões na resolução de problemas?",
+        "O que significa identificar padrões?",
+        "Como identificar padrões em problemas?",
+        "Para que serve o reconhecimento de padrões?",
+        "Por que reconhecer padrões é importante?",
+        "Me fale sobre a habilidade de reconhecer padrões.",
+        "Qual a utilidade do reconhecimento de padrões?",
+        "Como o reconhecimento de padrões ajuda na solução?",
+        "Reconhecimento de padrões é achar o que se repete?",
+        "Como os padrões facilitam a resolução de problemas?",
+        "Por que os padrões são essenciais em computação?",
+        "O que observar para reconhecer padrões?",
+        "Como usar padrões para prever soluções?",
+        "Qual a definição de reconhecimento de padrões?",
+        "Reconhecer padrões é ver similaridades?",
+        "Como o reconhecimento de padrões otimiza processos?",
+        "Quais exemplos de reconhecimento de padrões?"
+      ],
+      "responses": [
+        {
+          "level": "Nível 1",
+          "text": "O reconhecimento de padrões é a habilidade de identificar similaridades, regularidades ou tendências repetitivas dentro de um problema ou conjunto de dados. Ao reconhecer padrões, podemos prever comportamentos, simplificar processos, desenvolver soluções genéricas e aplicar conhecimentos de problemas já resolvidos em situações análogas. Essa capacidade é crucial para a otimização e reutilização de soluções."
+        },
+        {
+          "level": "Nível 2",
+          "text": "Reconhecimento de padrões é quando você percebe coisas que se repetem ou são parecidas. Por exemplo, se você percebe que a cada vez que o semáforo fica vermelho, os carros param, isso é um padrão. Ao identificar padrões em um problema, você pode usar uma solução que já funcionou antes ou prever o que vai acontecer, tornando a resolução mais rápida e fácil."
+        },
+        {
+          "level": "Nível 3",
+          "text": "Reconhecer padrões é achar o que se repete. É como ver que sempre que chove, você precisa de um guarda-chuva. Você vê o que é igual. Isso ajuda a saber o que fazer depois."
+        }
+      ]
+    },
+    {
+      "tag": "abstracao",
+      "patterns": [
+        "O que é abstração no pensamento computacional?",
+        "Explique o conceito de abstração.",
+        "Como funciona a abstração em problemas complexos?",
+        "Definição de abstração.",
+        "Qual a utilidade da abstração?",
+        "Para que serve abstração?",
+        "Como abstrair um problema?",
+        "Abstração é ignorar detalhes?",
+        "Me explique a abstração no contexto da computação.",
+        "Qual o papel da abstração na resolução de problemas?",
+        "Como usar abstração para simplificar um problema?",
+        "Abstração ajuda a focar no essencial?",
+        "Por que a abstração é importante no pensamento computacional?",
+        "O que significa abstrair informações?",
+        "Abstração é criar modelos simplificados?",
+        "Como abstração facilita o desenvolvimento de soluções?",
+        "Quais são os benefícios da abstração?",
+        "Como abstração ajuda em diferentes contextos?",
+        "Abstração é importante para reutilização de soluções?",
+        "Você pode explicar abstração com um exemplo?"
+      ],
+      "responses": [
+        {
+          "level": "Nível 1",
+          "text": "Abstração é o processo de simplificar a complexidade de um problema ou sistema, focando apenas nos aspectos mais relevantes e essenciais, enquanto ignora os detalhes secundários ou desnecessários. Isso nos permite criar modelos conceituais mais claros e genéricos, que podem ser aplicados a uma variedade de situações sem nos perdermos em informações periféricas. É fundamental para projetar sistemas robustos e flexíveis."
+        },
+        {
+          "level": "Nível 2",
+          "text": "Abstração é sobre focar no que realmente importa e deixar de lado os detalhes que não são importantes para resolver o problema. Imagine um mapa: ele mostra as ruas principais, mas não cada árvore ou casa. Ele 'abstrai' a realidade para te dar só a informação essencial que você precisa para chegar a um lugar. Isso simplifica as coisas e ajuda a ver a ideia central."
+        },
+        {
+          "level": "Nível 3",
+          "text": "Abstração é focar só no importante. Deixar de lado o que não serve. É como um desenho simples de uma pessoa: você sabe que é uma pessoa mesmo sem ver a cor da roupa ou o cabelo. Você foca na ideia principal."
+        }
+      ]
+    },
+    {
+      "tag": "algoritmos",
+      "patterns": [
+        "O que é um algoritmo?",
+        "Como definir algoritmo em computação?",
+        "Explique o conceito de algoritmo.",
+        "Para que serve um algoritmo?",
+        "Qual a lógica por trás de um algoritmo?",
+        "Como funciona um algoritmo?",
+        "O que caracteriza um algoritmo?",
+        "Por que algoritmos são importantes?",
+        "Me fale sobre algoritmos na programação.",
+        "Qual a estrutura de um algoritmo?",
+        "Como criar um algoritmo eficiente?",
+        "Algoritmo é uma lista de passos?",
+        "Para que usamos algoritmos?",
+        "Como os algoritmos resolvem problemas?",
+        "Qual a diferença entre algoritmo e programa?",
+        "Como os algoritmos ajudam na automação?",
+        "Explique a importância dos algoritmos.",
+        "Algoritmos podem ser representados como fluxogramas?",
+        "Como entender um algoritmo?",
+        "Qual o papel dos algoritmos na computação?"
+      ],
+      "responses": [
+        {
+          "level": "Nível 1",
+          "text": "Um algoritmo é uma sequência finita, bem definida e não ambígua de instruções ou passos que devem ser executados para resolver um problema específico ou realizar uma tarefa. Pense nele como uma 'receita' detalhada. Em computação, algoritmos são a espinha dorsal de todo software e sistema, ditando exatamente como um computador deve processar dados e gerar resultados."
+        },
+        {
+          "level": "Nível 2",
+          "text": "Um algoritmo é uma lista de passos claros e organizados para fazer alguma coisa. Por exemplo, a receita de um bolo é um algoritmo: ela tem passos em ordem para você conseguir o bolo. Ou os passos para escovar os dentes: primeiro molha, depois põe pasta, escova, enxágua. Cada passo é importante e precisa ser feito na sequência certa para dar o resultado esperado."
+        },
+        {
+          "level": "Nível 3",
+          "text": "Um algoritmo é uma lista de passos. Um, depois do outro. Para fazer algo. Tipo uma receita de bolo. Você segue os passos para ter o bolo pronto."
+        }
+      ]
+    },
+    {
+      "tag": "logica_sequencial",
+      "patterns": [
+        "O que é pensamento lógico?",
+        "Como funciona o raciocínio sequencial?",
+        "Explique o uso da lógica em programação.",
+        "Definição de lógica computacional.",
+        "Por que o raciocínio lógico é importante?",
+        "Como pensar logicamente?",
+        "Qual a importância do pensamento lógico na computação?",
+        "Como a lógica sequencial ajuda na programação?",
+        "Me fale sobre raciocínio lógico.",
+        "Como organizar o pensamento lógico?",
+        "O que significa lógica sequencial?",
+        "Como a lógica ajuda a resolver problemas?",
+        "Por que a sequência lógica é essencial?",
+        "Explique a relação entre lógica e programação.",
+        "Como desenvolver raciocínio lógico?",
+        "O que é usar operadores lógicos?",
+        "Como aplicar condições em lógica sequencial?",
+        "Qual a função da lógica na programação?",
+        "Como raciocínio lógico melhora a solução?",
+        "Qual a diferença entre lógica sequencial e outras lógicas?"
+      ],
+      "responses": [
+        {
+          "level": "Nível 1",
+          "text": "O pensamento lógico e o raciocínio sequencial são a capacidade de construir argumentos e sequências de eventos de forma coerente e sem contradições, utilizando princípios de causa e efeito e inferência. Na programação, isso se manifesta na criação de estruturas condicionais ('se X, então Y') e laços de repetição, garantindo que o fluxo do programa seja previsível e que as ações sejam executadas na ordem correta, levando aos resultados esperados."
+        },
+        {
+          "level": "Nível 2",
+          "text": "Pensamento lógico é pensar de forma organizada e com sentido, onde cada passo leva ao próximo de maneira clara. O raciocínio sequencial é seguir essa ordem. Por exemplo, para atravessar a rua, você primeiro olha para os dois lados, depois atravessa. Você não atravessa antes de olhar. Na programação, isso é muito importante para que o computador siga as instruções na ordem certa e faça o que é esperado."
+        },
+        {
+          "level": "Nível 3",
+          "text": "Pensamento lógico é pensar em ordem. Um passo, depois o outro. Faz sentido. É como uma fila: um atrás do outro. Ajuda a fazer as coisas certas, na hora certa."
+        }
+      ]
+    },
+    {
+      "tag": "linguagens_programacao",
+      "patterns": [
+        "Por que aprender linguagens de programação?",
+        "Quais linguagens são boas para iniciantes?",
+        "Me fale sobre linguagens visuais como Scratch.",
+        "Como começar a programar?",
+        "O que é uma linguagem de programação introdutória?",
+        "Quais são as linguagens mais usadas?",
+        "Como escolher uma linguagem de programação?",
+        "Por que usar linguagens visuais para aprender?",
+        "Qual a vantagem do Scratch?",
+        "Como aprender Python do zero?",
+        "O que devo saber para começar a programar?",
+        "Qual a diferença entre linguagens de programação?",
+        "Para que servem as linguagens de programação?",
+        "Como linguagens de programação ajudam no pensamento computacional?",
+        "Quais linguagens indicadas para crianças?",
+        "Linguagens de programação são difíceis?",
+        "Como linguagens ajudam no desenvolvimento de software?",
+        "Quais linguagens são populares hoje?",
+        "Posso aprender a programar sozinho?",
+        "Qual a melhor linguagem para iniciantes?"
+      ],
+      "responses": [
+        {
+          "level": "Nível 1",
+          "text": "Aprender linguagens de programação é o meio de transformar os conceitos do pensamento computacional em instruções executáveis por uma máquina. Linguagens visuais como o Scratch são excelentes para iniciantes, pois permitem arrastar e soltar blocos de código, tornando a lógica visível e tátil. Python é outra ótima opção por sua sintaxe legível e versatilidade. Elas facilitam a transição do pensamento abstrato para a prática de construir algoritmos e soluções."
+        },
+        {
+          "level": "Nível 2",
+          "text": "Aprender linguagens de programação é como aprender a falar com o computador. Linguagens como o Scratch são ótimas para começar porque você usa 'blocos' de comando para montar as instruções, como se fosse um quebra-cabeça. Isso ajuda a entender como os algoritmos funcionam de forma visual. É um jeito prático de aplicar o pensamento computacional e fazer o computador fazer coisas que você quer."
+        },
+        {
+          "level": "Nível 3",
+          "text": "Linguagens de programação são como idiomas para o computador. Com elas, você dá ordens. Scratch é fácil, você junta blocos coloridos para dar as ordens. É divertido e te ensina a pensar como um computador. Ajuda a fazer os algoritmos na prática."
+        }
+      ]
+    },
+    {
+      "tag": "depuracao_erros",
+      "patterns": [
+        "O que é depuração de código?",
+        "Como encontrar erros em programas?",
+        "Explique a importância da depuração.",
+        "O que significa corrigir bugs?",
+        "Qual a técnica para resolver erros?",
+        "Como fazer a depuração de um programa?",
+        "Por que corrigir bugs é importante?",
+        "Me fale sobre testes e depuração.",
+        "Como identificar erros no código?",
+        "O que é bug em programação?",
+        "Qual o processo para corrigir erros?",
+        "Como evitar erros em programas?",
+        "Por que depurar código ajuda na qualidade?",
+        "Como usar ferramentas para depurar?",
+        "Quais são os passos da depuração?",
+        "Como analisar erros de lógica?",
+        "Depuração é só testar o código?",
+        "Como melhorar um programa com depuração?",
+        "O que é encontrar falhas em software?",
+        "Como resolver problemas em códigos?"
+      ],
+      "responses": [
+        {
+          "level": "Nível 1",
+          "text": "Depuração (debugging) é o processo sistemático de identificar, isolar e corrigir erros ou 'bugs' em programas de computador. É uma etapa crítica no desenvolvimento, pois mesmo o código mais bem planejado pode conter falhas. A depuração envolve testar o código, analisar o comportamento inesperado, rastrear o fluxo de execução e ajustar as instruções até que o programa funcione corretamente e atenda às especificações."
+        },
+        {
+          "level": "Nível 2",
+          "text": "Depuração é quando você procura e arruma erros em um programa de computador. Se o programa não está fazendo o que você espera, significa que tem um 'bug' (erro). Depurar é como ser um detetive: você investiga onde está o erro, entende por que ele acontece e depois o corrige. É uma parte importante para garantir que suas soluções funcionem bem."
+        },
+        {
+          "level": "Nível 3",
+          "text": "Depuração é achar e consertar erros. Se seu programa não funciona, ele tem um 'bug'. Depurar é ir lá e arrumar. É como tirar uma pedra do sapato. Para que tudo funcione bem."
+        }
+      ]
+    },
+    {
+      "tag": "aplicacoes_pc",
+      "patterns": [
+        "Onde usar o pensamento computacional?",
+        "Como aplicar o pensamento computacional no dia a dia?",
+        "Exemplos de uso de pensamento computacional.",
+        "Quais áreas utilizam essa abordagem?",
+        "O pensamento computacional é útil fora da computação?",
+        "Em que profissões o pensamento computacional ajuda?",
+        "Posso usar pensamento computacional na vida cotidiana?",
+        "Como o pensamento computacional é aplicado em negócios?",
+        "O pensamento computacional serve na educação?",
+        "Quais são as aplicações práticas do pensamento computacional?",
+        "Pensamento computacional na medicina, funciona?",
+        "Como usar o pensamento computacional para resolver problemas?",
+        "Quais setores usam pensamento computacional?",
+        "Exemplos reais de pensamento computacional?",
+        "O pensamento computacional ajuda em engenharia?",
+        "Como aplicar pensamento computacional em projetos?",
+        "Pensamento computacional é só para programadores?",
+        "Quais benefícios o pensamento computacional traz?",
+        "Como o pensamento computacional melhora processos?",
+        "Pensamento computacional é só para tecnologia?"
+      ],
+      "responses": [
+        {
+          "level": "Nível 1",
+          "text": "O pensamento computacional transcende a área da computação e possui aplicações vastas. Ele é útil na educação para estruturar métodos de estudo, em negócios para otimizar processos e tomar decisões baseadas em dados, na medicina para analisar informações e diagnosticar, e na engenharia para projetar sistemas complexos. Essencialmente, qualquer área que envolva a resolução sistemática de problemas, organização de informações e automação de tarefas pode se beneficiar dessa abordagem."
+        },
+        {
+          "level": "Nível 2",
+          "text": "Você pode usar o pensamento computacional em muitas coisas do seu dia a dia, não só com computadores! Por exemplo: para organizar seus estudos, para planejar uma viagem (dividindo em etapas), para resolver um problema em casa (tipo montar um móvel, seguindo os passos). Ele te ajuda a pensar de forma clara e organizada para resolver qualquer tipo de desafio."
+        },
+        {
+          "level": "Nível 3",
+          "text": "Pensamento computacional é útil em tudo. Em casa, para organizar o quarto. Na escola, para fazer tarefas. Para cozinhar, seguindo a receita. Ele ajuda a pensar com passos claros para resolver qualquer coisa."
+        }
+      ]
+    },
+    {
+      "tag": "projeto_final_pc",
+      "patterns": [
+        "Como desenvolver um projeto com pensamento computacional?",
+        "Etapas para criar uma solução computacional.",
+        "Me fale sobre projetos com lógica computacional.",
+        "O que considerar ao aplicar pensamento computacional em um projeto?",
+        "Como apresentar uma solução baseada em algoritmos?",
+        "Quais os passos para criar um projeto de computação?",
+        "Como planejar um projeto com pensamento computacional?",
+        "Quais são as fases de um projeto computacional?",
+        "Como usar pensamento computacional para resolver um problema?",
+        "O que é importante no desenvolvimento de projetos?",
+        "Como organizar as ideias para um projeto computacional?",
+        "Me explique como fazer um projeto final usando pensamento computacional.",
+        "Quais cuidados ao apresentar projetos com algoritmos?",
+        "Como validar um projeto baseado em lógica computacional?",
+        "Como testar uma solução computacional?",
+        "Como documentar um projeto com pensamento computacional?",
+        "Como definir objetivos em projetos computacionais?",
+        "Como aplicar lógica no desenvolvimento de projetos?",
+        "Quais dicas para um bom projeto computacional?",
+        "Como o pensamento computacional ajuda no sucesso do projeto?"
+      ],
+      "responses": [
+        {
+          "level": "Nível 1",
+          "text": "Desenvolver um projeto com pensamento computacional segue um ciclo iterativo: começa com a identificação e decomposição do problema. Em seguida, vem o planejamento da solução, onde se aplicam o reconhecimento de padrões e a abstração para criar os algoritmos. A fase de implementação (programação) é seguida por testes e depuração para garantir a funcionalidade. A apresentação final deve comunicar não só o resultado, mas também a lógica por trás das escolhas, a eficiência da solução e o processo de pensamento computacional aplicado."
+        },
+        {
+          "level": "Nível 2",
+          "text": "Para criar um projeto usando o pensamento computacional, você segue passos claros. Primeiro, escolha um problema. Depois, divida esse problema em partes menores. Em seguida, planeje os passos (algoritmos) para resolver cada parte. Aí você constrói sua solução (pode ser um programa simples, um plano, etc.). Por fim, teste para ver se funcionou e arrume o que for preciso. Ao apresentar, mostre como você pensou e resolveu o problema passo a passo."
+        },
+        {
+          "level": "Nível 3",
+          "text": "Fazer um projeto com pensamento computacional é como fazer um bolo. Primeiro, sabe o que quer fazer. Depois, planeja os passos. Aí, faz o que planejou. No fim, vê se está bom e arruma se precisar. É um plano para fazer algo de forma organizada."
+        }
+      ]
+    }
+  ]
+}

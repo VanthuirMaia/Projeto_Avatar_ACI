@@ -1,0 +1,40 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# ── Variáveis de ambiente ──────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── RAG — índice gerado (recriar com ingest.py) ────────────────────────────────
+Backend/data/rag_store/
+
+# ── Modelos treinados (binários grandes) ──────────────────────────────────────
+Backend/data/*.pth
+
+# ── Node / Next.js ────────────────────────────────────────────────────────────
+Frontend/node_modules/
+Frontend/.next/
+Frontend/out/
+Frontend/.turbo/
+
+# ── IDEs ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*

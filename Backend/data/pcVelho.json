@@ -1,0 +1,137 @@
+{
+    "intents": [
+        {
+            "tag": "introducao_pc",
+            "patterns": [
+                "O que é pensamento computacional?",
+                "Explique o pensamento computacional.",
+                "Me fale sobre pensamento computacional.",
+                "Definição de pensamento computacional.",
+                "O que significa pensamento computacional?",
+                "o que é PC",
+                "o que significa PC"
+            
+            ],
+            "responses": [
+                "Pensamento computacional é uma abordagem para resolver problemas de forma lógica e estruturada, inspirada nos processos da ciência da computação. Ele envolve decompor problemas, reconhecer padrões, abstrair informações e criar algoritmos para encontrar soluções eficientes."
+            ]
+        },
+        {
+            "tag": "decomposicao_problemas",
+            "patterns": [
+                "O que é decomposição de problemas?",
+                "Como funciona a decomposição de problemas?",
+                "Fale sobre decomposição no pensamento computacional.",
+                "Definição de decomposição de problemas.",
+                "Por que usar decomposição para resolver problemas?"
+            ],
+            "responses": [
+                "Decomposição de problemas é a técnica de dividir um desafio complexo em partes menores e mais gerenciáveis. Essa estratégia facilita o entendimento, a solução passo a passo e a automação de tarefas em algoritmos."
+            ]
+        },
+        {
+            "tag": "reconhecimento_padroes",
+            "patterns": [
+                "O que é reconhecimento de padrões?",
+                "Fale sobre o reconhecimento de padrões.",
+                "Explique como padrões são usados no pensamento computacional.",
+                "Qual o papel dos padrões na resolução de problemas?",
+                "O que significa identificar padrões?"
+            ],
+            "responses": [
+                "Reconhecimento de padrões é a habilidade de observar similaridades ou repetições em dados e situações. Isso permite prever comportamentos, reduzir complexidade e aplicar soluções já conhecidas a novos problemas semelhantes."
+            ]
+        },
+        {
+            "tag": "abstracao",
+            "patterns": [
+                "O que é abstração no pensamento computacional?",
+                "Explique o conceito de abstração.",
+                "Como funciona a abstração em problemas complexos?",
+                "Definição de abstração.",
+                "Qual a utilidade da abstração?"
+            ],
+            "responses": [
+                "Abstração é o processo de ignorar os detalhes menos importantes de um problema e focar nos aspectos essenciais. Essa simplificação ajuda a criar modelos mais eficientes e reutilizáveis para diferentes situações."
+            ]
+        },
+        {
+            "tag": "algoritmos",
+            "patterns": [
+                "O que é um algoritmo?",
+                "Como definir algoritmo em computação?",
+                "Explique o conceito de algoritmo.",
+                "Para que serve um algoritmo?",
+                "Qual a lógica por trás de um algoritmo?"
+            ],
+            "responses": [
+                "Um algoritmo é uma sequência ordenada de passos para resolver um problema ou executar uma tarefa. Ele pode ser representado por texto, fluxogramas ou códigos de programação e é a base da automação computacional."
+            ]
+        },
+        {
+            "tag": "logica_sequencial",
+            "patterns": [
+                "O que é pensamento lógico?",
+                "Como funciona o raciocínio sequencial?",
+                "Explique o uso da lógica em programação.",
+                "Definição de lógica computacional.",
+                "Por que o raciocínio lógico é importante?"
+            ],
+            "responses": [
+                "Pensamento lógico e raciocínio sequencial são essenciais para construir soluções coerentes. Eles envolvem usar operadores, condições e regras para tomar decisões e organizar ações de forma sistemática."
+            ]
+        },
+        {
+            "tag": "linguagens_programacao",
+            "patterns": [
+                "Por que aprender linguagens de programação?",
+                "Quais linguagens são boas para iniciantes?",
+                "Me fale sobre linguagens visuais como Scratch.",
+                "Como começar a programar?",
+                "O que é uma linguagem de programação introdutória?"
+            ],
+            "responses": [
+                "Aprender linguagens de programação introdutórias, como Scratch ou Python, ajuda a aplicar os conceitos do pensamento computacional de forma prática. Elas facilitam a construção de algoritmos e promovem o desenvolvimento da lógica."
+            ]
+        },
+        {
+            "tag": "depuracao_erros",
+            "patterns": [
+                "O que é depuração de código?",
+                "Como encontrar erros em programas?",
+                "Explique a importância da depuração.",
+                "O que significa corrigir bugs?",
+                "Qual a técnica para resolver erros?"
+            ],
+            "responses": [
+                "Depuração é o processo de identificar e corrigir erros (bugs) em programas. Envolve testes, análise lógica e revisão de código para garantir que a solução funcione como esperado."
+            ]
+        },
+        {
+            "tag": "aplicacoes_pc",
+            "patterns": [
+                "Onde usar o pensamento computacional?",
+                "Como aplicar o pensamento computacional no dia a dia?",
+                "Exemplos de uso de pensamento computacional.",
+                "Quais áreas utilizam essa abordagem?",
+                "O pensamento computacional é útil fora da computação?"
+            ],
+            "responses": [
+                "O pensamento computacional pode ser aplicado em diversas áreas como educação, negócios, medicina e engenharia. Ele ajuda a organizar ideias, resolver problemas complexos e automatizar processos de maneira lógica."
+            ]
+        },
+        {
+            "tag": "projeto_final_pc",
+            "patterns": [
+                "Como desenvolver um projeto com pensamento computacional?",
+                "Etapas para criar uma solução computacional.",
+                "Me fale sobre projetos com lógica computacional.",
+                "O que considerar ao aplicar pensamento computacional em um projeto?",
+                "Como apresentar uma solução baseada em algoritmos?"
+            ],
+            "responses": [
+                "Criar um projeto com pensamento computacional envolve identificar um problema, planejar uma solução, aplicar lógica, desenvolver e testar a solução. A apresentação final deve refletir clareza, eficiência e organização da ideia."
+            ]
+        }
+    ]
+}
