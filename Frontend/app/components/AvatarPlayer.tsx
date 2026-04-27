@@ -28,17 +28,29 @@ export default function AvatarPlayer({ estado }: { estado: AvatarEstado }) {
   }, [estado]);
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-full rounded-xl overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10">
-        <video
-          ref={videoRef}
-          className="w-full"
-          autoPlay
-          loop
-          playsInline
-          muted
-        />
+    <div className="flex flex-col items-center gap-4">
+      {/* Moldura circular com borda gradiente */}
+      <div className="relative w-full aspect-square">
+        {/* brilho externo */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-secondary opacity-20 blur-md" />
+
+        {/* borda gradiente: wrapper com padding + fundo gradiente */}
+        <div className="absolute inset-0 rounded-full p-[3px] bg-gradient-to-br from-primary to-secondary">
+          <div className="w-full h-full rounded-full overflow-hidden bg-background">
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover"
+              style={{ objectPosition: "center 8%" }}
+              autoPlay
+              loop
+              playsInline
+              muted
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Indicador de estado */}
       <div className="flex items-center gap-2">
         <span
           className={`w-2 h-2 rounded-full ${

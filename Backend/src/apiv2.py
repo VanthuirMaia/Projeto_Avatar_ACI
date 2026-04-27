@@ -1,8 +1,10 @@
 import os
 import json
+import base64
 import logging
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
+import requests as http_requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -49,6 +51,42 @@ if use_gemini:
     )
 
 executor = ThreadPoolExecutor(max_workers=1)
+
+# ── ElevenLabs TTS ─────────────────────────────────────────────────────────────
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB")
+use_elevenlabs = bool(ELEVENLABS_API_KEY)
+
+if use_elevenlabs:
+    logger.info("ElevenLabs TTS configurado (voice=%s).", ELEVENLABS_VOICE_ID)
+
+
+def _elevenlabs_tts(text: str) -> str | None:
+    """Chama ElevenLabs e retorna áudio MP3 em base64, ou None em caso de falha."""
+    if not use_elevenlabs:
+        return None
+    try:
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
+        resp = http_requests.post(
+            url,
+            headers={"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"},
+            json={
+                "text": text,
+                "model_id": "eleven_multilingual_v2",
+                "voice_settings": {"stability": 0.5, "similarity_boost": 0.75},
+            },
+            timeout=30,
+        )
+        if not resp.ok:
+            logger.error(
+                "ElevenLabs TTS falhou: HTTP %s — voice_id=%s — %s",
+                resp.status_code, ELEVENLABS_VOICE_ID, resp.text,
+            )
+            return None
+        return base64.b64encode(resp.content).decode("utf-8")
+    except Exception:
+        logger.exception("Erro ElevenLabs TTS — resposta sem áudio.")
+        return None
 
 # ── RAG ────────────────────────────────────────────────────────────────────────
 rag_system = None
@@ -152,10 +190,13 @@ def gerar_resposta(topic: str, age_group: str) -> tuple[dict, int]:
     if not conteudo_final:
         conteudo_final = "Desculpe, não consegui processar sua pergunta. Tente novamente."
 
+    audio_b64 = _elevenlabs_tts(conteudo_final)
+
     return {
         "content": conteudo_final,
         "tag": tag1,
         "confidence": prob1,
+        "audio_base64": audio_b64,
     }, 200
 
 
@@ -261,12 +302,77 @@ def suggest_pei():
         return jsonify({"error": str(e)}), 500
 
 
+# ── /voices ────────────────────────────────────────────────────────────────────
+@app.route("/voices", methods=["GET"])
+def list_voices():
+    if not use_elevenlabs:
+        return jsonify({"error": "ELEVENLABS_API_KEY não configurado"}), 503
+    try:
+        resp = http_requests.get(
+            "https://api.elevenlabs.io/v1/voices",
+            headers={"xi-api-key": ELEVENLABS_API_KEY},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        voices = [
+            {"voice_id": v["voice_id"], "name": v["name"], "labels": v.get("labels", {})}
+            for v in resp.json().get("voices", [])
+        ]
+        return jsonify({"voices": voices, "current_voice_id": ELEVENLABS_VOICE_ID})
+    except Exception as e:
+        logger.exception("Erro ao listar vozes ElevenLabs.")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/voices/test", methods=["GET"])
+def test_voices():
+    """Testa todas as vozes da conta e retorna quais são acessíveis no plano atual."""
+    if not use_elevenlabs:
+        return jsonify({"error": "ELEVENLABS_API_KEY não configurado"}), 503
+
+    try:
+        resp = http_requests.get(
+            "https://api.elevenlabs.io/v1/voices",
+            headers={"xi-api-key": ELEVENLABS_API_KEY},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        all_voices = resp.json().get("voices", [])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    accessible, blocked = [], []
+    for v in all_voices:
+        try:
+            r = http_requests.post(
+                f"https://api.elevenlabs.io/v1/text-to-speech/{v['voice_id']}",
+                headers={"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"},
+                json={"text": "Olá", "model_id": "eleven_multilingual_v2"},
+                timeout=15,
+            )
+            entry = {
+                "voice_id": v["voice_id"],
+                "name": v["name"],
+                "gender": v.get("labels", {}).get("gender", "?"),
+                "language": v.get("labels", {}).get("language", "?"),
+            }
+            if r.ok:
+                accessible.append(entry)
+            else:
+                blocked.append({**entry, "http": r.status_code})
+        except Exception:
+            pass
+
+    return jsonify({"accessible": accessible, "blocked": blocked})
+
+
 # ── /health ────────────────────────────────────────────────────────────────────
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({
         "status": "ok",
         "openai": use_openai,
+        "elevenlabs": use_elevenlabs,
         "rag_indexed": rag_system.is_indexed() if rag_system else False,
         "rag_chunks": len(rag_system._chunks) if rag_system else 0,
     })

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { mockMensagensChat, perguntasRapidas } from "../../mock/data";
 import { buscarRespostaChat } from "../../utils/api";
 import AvatarPlayer, { AvatarEstado } from "../../components/AvatarPlayer";
+import { RespostaChat } from "../../utils/api";
 
 interface Mensagem {
   id: string;
@@ -20,6 +21,7 @@ export default function AssistantPage() {
   const [processando, setProcessando] = useState(false);
   const [avatarEstado, setAvatarEstado] = useState<AvatarEstado>("aguardando");
   const avatarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -38,6 +40,23 @@ export default function AssistantPage() {
       minute: "2-digit",
     });
 
+  const falarTexto = (texto: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setAvatarEstado("aguardando");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(texto);
+    utterance.lang = "pt-BR";
+    utterance.rate = 0.95;
+    utterance.onend = () => setAvatarEstado("aguardando");
+    window.speechSynthesis.speak(utterance);
+  };
+
+  useEffect(() => {
+    return () => { window.speechSynthesis?.cancel(); };
+  }, []);
+
   const enviarMensagem = async (texto?: string) => {
     const mensagemTexto = texto || input.trim();
     if (!mensagemTexto || processando) return;
@@ -50,25 +69,32 @@ export default function AssistantPage() {
     setProcessando(true);
     setAvatarEstado("pensando");
 
-    let conteudo: string;
+    let resposta: RespostaChat;
     try {
-      conteudo = await buscarRespostaChat(mensagemTexto, "geral");
+      resposta = await buscarRespostaChat(mensagemTexto, "geral");
     } catch {
-      conteudo =
-        "Não foi possível conectar ao servidor. Verifique se o backend está rodando na porta 5022.";
+      resposta = {
+        content: "Não foi possível conectar ao servidor. Verifique se o backend está rodando na porta 5022.",
+        audio_base64: null,
+      };
     }
 
     setMensagens((prev) => [
       ...prev,
-      { id: gerarId(), tipo: "assistant", conteudo, hora: horaNow() },
+      { id: gerarId(), tipo: "assistant", conteudo: resposta.content, hora: horaNow() },
     ]);
     setProcessando(false);
-
-    // avatar comunica por tempo proporcional ao tamanho da resposta (~12 chars/s)
     setAvatarEstado("comunicando");
-    if (avatarTimerRef.current) clearTimeout(avatarTimerRef.current);
-    const duracaoMs = Math.max(3000, (conteudo.length / 12) * 1000);
-    avatarTimerRef.current = setTimeout(() => setAvatarEstado("aguardando"), duracaoMs);
+
+    if (resposta.audio_base64) {
+      if (audioRef.current) audioRef.current.pause();
+      const audio = new Audio(`data:audio/mpeg;base64,${resposta.audio_base64}`);
+      audioRef.current = audio;
+      audio.onended = () => setAvatarEstado("aguardando");
+      audio.play().catch(() => falarTexto(resposta.content));
+    } else {
+      falarTexto(resposta.content);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -17,10 +17,15 @@ function idadeParaFaixaEtaria(idade: number): string {
   return "acima de 15 anos";
 }
 
+export interface RespostaChat {
+  content: string;
+  audio_base64: string | null;
+}
+
 export async function buscarRespostaChat(
   topic: string,
   ageGroup = "geral",
-): Promise<string> {
+): Promise<RespostaChat> {
   const res = await fetch(`${BACKEND_URL}/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -29,7 +34,7 @@ export async function buscarRespostaChat(
 
   if (!res.ok) throw new Error(`Erro ao chamar o backend: ${res.status}`);
   const data = await res.json();
-  return data.content as string;
+  return { content: data.content as string, audio_base64: data.audio_base64 ?? null };
 }
 
 export async function adaptarAtividade(
