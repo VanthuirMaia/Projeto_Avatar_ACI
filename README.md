@@ -39,25 +39,30 @@ Projeto_ACI/
 
 - Python 3.10+ com `.venv` ativado
 - Node.js 18+
-- Chave de API OpenAI (ou OpenRouter com `OPENAI_BASE_URL`)
+- Chave de API OpenAI
+- Chave de API ElevenLabs (TTS do avatar)
 
 ### Backend
 
-```bash
-cd Backend
-
+```powershell
 # 1. Instalar dependências
+cd Backend
 pip install -r requirements.txt
 
-# 2. Configurar variáveis de ambiente (Windows)
-$env:OPENAI_API_KEY = "sk-..."
+# 2. Configurar variáveis (criar Backend/.env a partir do exemplo abaixo)
+# OPENAI_API_KEY=sk-...
+# OPENAI_MODEL=gpt-4.1-mini
+# ELEVENLABS_API_KEY=sk_...
+# ELEVENLABS_VOICE_ID=Xb7hH8MSUJpSbSDYk0k2
+# PORT=5022
 
 # 3. Indexar documentos RAG (rodar uma vez)
 cd src
 python ingest.py
 
-# 4. Subir a API
-python apiv2.py
+# 4. Subir a API (carrega .env automaticamente)
+cd ..\..\   # raiz do projeto
+.\Backend\start.ps1
 # → http://localhost:5022
 ```
 
@@ -77,9 +82,18 @@ npm run dev
 Chat com o assistente — responde perguntas pedagógicas sobre inclusão.
 
 ```json
+// Request
 {
   "topic": "Como adaptar atividades para alunos com TEA?",
   "age_group": "6 a 10 anos"
+}
+
+// Response
+{
+  "content": "resposta em texto",
+  "tag": "adaptacao_tea",
+  "confidence": 0.92,
+  "audio_base64": "<MP3 em base64 — null se ElevenLabs não disponível>"
 }
 ```
 
@@ -113,13 +127,22 @@ Gera sugestões de PEI (objetivos, estratégias, recursos, avaliações).
 
 ### `GET /health`
 
-Status do servidor e do índice RAG.
+Status do servidor, RAG e integrações.
+
+### `GET /voices`
+
+Lista vozes disponíveis na conta ElevenLabs.
+
+### `GET /voices/test`
+
+Testa quais vozes são acessíveis no plano atual (útil para debugging).
 
 ## Fluxo interno da API
 
 1. **NLU** — classifica a intenção da pergunta (modelo attention treinado com `intents.json`)
 2. **RAG** — recupera trechos relevantes dos 18 PDFs via similaridade de cosseno (numpy + `text-embedding-3-small`)
-3. **GPT-4o** — gera resposta final contextualizada com o RAG + perfil do aluno
+3. **gpt-4.1-mini** — gera resposta final contextualizada com o RAG + perfil do aluno
+4. **ElevenLabs TTS** — converte a resposta em áudio MP3, retornado em base64
 
 ## Status das fases
 
@@ -128,8 +151,8 @@ Status do servidor e do índice RAG.
 | 1    | Integração frontend ↔ backend       | ✅ Concluída |
 | 2    | Retreinamento NLU com conteúdo TEA  | ✅ Concluída |
 | 3    | RAG com OpenAI (numpy vector store) | ✅ Concluída |
-| 4    | Avatar ElevenLabs + lip sync        | 🔲 Pendente  |
-| 5    | Deploy VPS (Docker + Nginx)         | 🔲 Pendente  |
+| 4    | Avatar ElevenLabs + lip sync        | ✅ Concluída |
+| 5    | Deploy VPS (Docker + Nginx)         | 🔲 Próximo   |
 
 ## Equipe
 
