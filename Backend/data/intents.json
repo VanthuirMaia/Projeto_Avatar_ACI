@@ -23,16 +23,7 @@
       ],
       "responses": [
         {
-          "level": "Nível 1",
-          "text": "Para alunos com TEA Nível 1, mantenha a estrutura original da atividade e adicione suportes visuais como ícones e esquemas. Divida a tarefa em etapas claras com início, meio e fim bem definidos. Use linguagem direta e objetiva, evitando metáforas. Ofereça tempo adicional e antecipe transições com avisos prévios. Permita o uso de objetos de interesse para motivar a participação e garanta um espaço com mínimo de estímulos distratores."
-        },
-        {
-          "level": "Nível 2",
-          "text": "Para alunos com TEA Nível 2, adapte a atividade com suporte visual robusto: cartelas com passos numerados e pictogramas. Reduza a quantidade de informação por etapa e ofereça modelos concretos do que se espera. Use reforço positivo imediato a cada etapa concluída e considere adaptar o formato de resposta para oral, desenho ou múltipla escolha. Disponibilize apoio de mediador quando necessário."
-        },
-        {
-          "level": "Nível 3",
-          "text": "Para alunos com TEA Nível 3, a atividade deve ser altamente individualizada: uma instrução por vez com apoio visual e físico. Use objetos concretos e manipuláveis. A presença de profissional de apoio é fundamental. Adapte o objetivo para o nível funcional do aluno, utilize sistemas de comunicação alternativa e registre respostas de forma flexível, como apontamento, olhar ou gesto."
+          "text": "Para adaptar atividades para alunos com TEA, adicione suportes visuais como ícones, esquemas e pictogramas. Divida a tarefa em etapas claras com início, meio e fim bem definidos. Use linguagem direta e objetiva, evitando metáforas e linguagem figurada. Ofereça tempo adicional e antecipe transições com avisos prévios. Permita o uso de objetos de interesse para motivar a participação e garanta um espaço com mínimo de estímulos distratores."
         }
       ]
     },
@@ -59,16 +50,7 @@
       ],
       "responses": [
         {
-          "level": "Nível 1",
-          "text": "Para alunos com TDAH Nível 1, divida as atividades em blocos curtos de 10 a 15 minutos com pequenas pausas entre eles. Utilize checklists visuais para que o aluno acompanhe seu próprio progresso. Posicione o aluno próximo ao professor e longe de fontes de distração. Ofereça instruções claras e breves, de preferência escritas e faladas. Reforce positivamente comportamentos de atenção e conclusão de tarefas."
-        },
-        {
-          "level": "Nível 2",
-          "text": "Para alunos com TDAH Nível 2, fragmente as atividades em partes ainda menores com pausas frequentes. Use cronômetros visuais para ajudar na gestão do tempo. Ofereça uma tarefa por vez e elimine materiais desnecessários da mesa. Permita movimento entre atividades e o uso de objetos fidget discretos. Forneça lembretes frequentes e use reforço imediato ao concluir cada etapa."
-        },
-        {
-          "level": "Nível 3",
-          "text": "Para alunos com TDAH Nível 3, as atividades devem ser muito curtas e altamente estruturadas. Trabalhe com mediação individual sempre que possível. Use instruções de um passo por vez com confirmação de entendimento a cada instrução. Ofereça recompensas imediatas e tangíveis ao completar tarefas. Adapte o ambiente para minimizar ao máximo estímulos distratores e considere local alternativo para realização das atividades."
+          "text": "Para adaptar atividades para alunos com TDAH, divida as tarefas em blocos curtos com pequenas pausas entre eles. Utilize checklists visuais para que o aluno acompanhe seu próprio progresso. Posicione o aluno próximo ao professor e longe de fontes de distração. Ofereça instruções claras e breves, de preferência escritas e faladas. Reforce positivamente comportamentos de atenção e a conclusão de cada etapa da tarefa."
         }
       ]
     },
@@ -94,16 +76,7 @@
       ],
       "responses": [
         {
-          "level": "Nível 1",
-          "text": "Para alunos com dislexia Nível 1, use fontes sem serifa (Arial, Verdana) em tamanho mínimo 14pt com espaçamento entre linhas de 1.5. Destaque palavras-chave em negrito e divida textos longos em parágrafos curtos. Ofereça tempo adicional para leitura e escrita. Permita leitura em voz alta e o uso de régua de leitura. Avalie a compreensão, não a ortografia, e aceite respostas orais quando necessário."
-        },
-        {
-          "level": "Nível 2",
-          "text": "Para alunos com dislexia Nível 2, além das adaptações de formatação, forneça textos em áudio ou use software de leitura em voz alta. Ofereça glossário de palavras difíceis e permita dicionário durante atividades. Apresente conteúdo em múltiplos formatos (visual, auditivo). Reduza a quantidade de texto e utilize questões de múltipla escolha como alternativa às dissertativas. Considere o uso de papel colorido (creme ou azul claro) para reduzir o contraste."
-        },
-        {
-          "level": "Nível 3",
-          "text": "Para alunos com dislexia Nível 3, priorize recursos audiovisuais e manipuláveis em substituição ao texto escrito. Use software de síntese de voz e permita gravação de respostas orais. Adapte avaliações para formato oral ou em vídeo. Ofereça mediação individual durante a leitura. Utilize a fonte OpenDyslexic quando possível e considere a realização das atividades em ambiente separado com menos pressão de tempo."
+          "text": "Para adaptar atividades para alunos com dislexia, use fontes sem serifa (Arial, Verdana) em tamanho mínimo 14pt com espaçamento entre linhas de 1.5. Destaque palavras-chave em negrito e divida textos longos em parágrafos curtos. Ofereça tempo adicional para leitura e escrita, permita leitura em voz alta e disponibilize recursos de áudio. Avalie a compreensão do conteúdo, não a ortografia, e aceite respostas orais quando necessário."
         }
       ]
     },
@@ -130,16 +103,7 @@
       ],
       "responses": [
         {
-          "level": "Nível 1",
-          "text": "O PEI para alunos com TEA Nível 1 deve conter objetivos SMART: específicos, mensuráveis, alcançáveis, relevantes e temporais. Inclua objetivos nas áreas acadêmica, social e de autonomia. Defina estratégias pedagógicas individualizadas, recursos necessários e formas de avaliação adaptadas. Estabeleça metas de curto, médio e longo prazo. O PEI deve ser elaborado com participação da família e equipe multidisciplinar, sendo revisado periodicamente."
-        },
-        {
-          "level": "Nível 2",
-          "text": "Para alunos com TEA Nível 2, o PEI deve priorizar objetivos funcionais e de comunicação além dos acadêmicos. Descreva adaptações curriculares necessárias e metodologias específicas como ABA, TEACCH ou DIR/Floortime. Inclua estratégias de comunicação alternativa e suportes visuais. Detalhe o apoio humano necessário (profissional de apoio escolar) e estabeleça rotinas estruturadas. Documente critérios claros de avaliação de progresso."
-        },
-        {
-          "level": "Nível 3",
-          "text": "Para alunos com TEA Nível 3, o PEI deve ser centrado em habilidades de vida diária, comunicação funcional e autonomia básica, além dos objetivos acadêmicos adaptados. Especifique a necessidade de apoio individual intensivo, equipamentos e tecnologia assistiva. Inclua plano de comunicação alternativa, estratégias sensoriais e protocolos para situações de crise. A família é parceira central no desenvolvimento e revisão do PEI."
+          "text": "O PEI deve conter objetivos SMART: específicos, mensuráveis, alcançáveis, relevantes e temporais. Inclua objetivos nas áreas acadêmica, social e de autonomia, adaptados às necessidades individuais do aluno. Defina estratégias pedagógicas individualizadas, recursos necessários e formas de avaliação adaptadas. Estabeleça metas de curto, médio e longo prazo. O PEI deve ser elaborado com a participação da família e da equipe multidisciplinar, sendo revisado periodicamente."
         }
       ]
     },
@@ -166,16 +130,7 @@
       ],
       "responses": [
         {
-          "level": "Nível 1",
-          "text": "Para alunos com TEA Nível 1 com dificuldades de comunicação, complemente a fala com suportes visuais como pictogramas e cartões de comunicação para situações específicas. Ensine vocabulário de emoções e situações sociais com imagens. Use scripts sociais visuais para interações. Introduza aplicativos de CAA como apoio, especialmente para situações de maior estresse ou sobrecarga sensorial quando a comunicação verbal pode falhar."
-        },
-        {
-          "level": "Nível 2",
-          "text": "Para alunos com TEA Nível 2 com comunicação limitada, implemente um sistema de comunicação por troca de figuras (PECS) ou prancha de comunicação com vocabulário funcional. Use aplicativos de CAA no tablet ou dispositivo pessoal. Organize o vocabulário por categorias (pedidos, recusas, emoções, atividades). Treine toda a equipe e família no sistema adotado para garantir consistência. O objetivo é a comunicação funcional, não necessariamente a fala."
-        },
-        {
-          "level": "Nível 3",
-          "text": "Para alunos com TEA Nível 3 não verbais ou com comunicação muito limitada, priorize um sistema robusto de CAA com apoio especializado. Avalie o sistema mais adequado (prancha de comunicação, dispositivo de geração de voz, olhar direcionado) com fonoaudiólogo. Comece com um vocabulário reduzido e de alta motivação para o aluno. Crie oportunidades intencionais de comunicação ao longo do dia. Qualquer forma de comunicação (gesto, olhar, apontamento) deve ser valorizada e respondida."
+          "text": "A Comunicação Aumentativa e Alternativa (CAA) complementa ou substitui a fala por meio de pictogramas, pranchas de comunicação, PECS e aplicativos. Organize o vocabulário por categorias funcionais (pedidos, recusas, emoções, atividades). Treine toda a equipe e a família no sistema adotado para garantir consistência. O objetivo é a comunicação funcional. Apps como Cboard (gratuito, em português) e LetMeTalk são boas opções acessíveis para começar."
         }
       ]
     },
@@ -201,16 +156,7 @@
       ],
       "responses": [
         {
-          "level": "Nível 1",
-          "text": "Para alunos com TEA Nível 1 com questões sensoriais, identifique os gatilhos sensoriais específicos e implemente adaptações pontuais: fones de ouvido com cancelamento de ruído, iluminação ajustável, espaço com menos estímulos visuais. Estabeleça um cantinho de autorregulação na sala. Permita que o aluno use ferramentas de autorregulação (fidgets, almofada de pressão) discretamente. Crie rotinas que antecipem momentos de maior carga sensorial (recreio, aula de educação física)."
-        },
-        {
-          "level": "Nível 2",
-          "text": "Para alunos com TEA Nível 2 com processamento sensorial atípico, adapte o ambiente de forma mais sistemática: iluminação indireta, redução de estímulos visuais nas paredes, superfícies de trabalho organizadas. Crie um espaço de autorregulação fora da sala para momentos de sobrecarga. Estabeleça pausas sensoriais programadas ao longo do dia. Trabalhe com terapeuta ocupacional para identificar estratégias sensoriais individualizadas. Ensine ao aluno a reconhecer sinais de sobrecarga."
-        },
-        {
-          "level": "Nível 3",
-          "text": "Para alunos com TEA Nível 3 com disfunção sensorial severa, o planejamento do ambiente deve ser intensivo e personalizado com orientação de terapeuta ocupacional. Tenha protocolos claros para situações de crise sensorial: espaço seguro e tranquilo, profissional de apoio treinado, e estratégias de acalmar específicas para o aluno. Mapeie os gatilhos do aluno e compartilhe com toda equipe. Integre estratégias sensoriais em toda a rotina diária."
+          "text": "Para lidar com a sensorialidade no TEA, identifique os gatilhos sensoriais específicos do aluno e implemente adaptações pontuais: fones de ouvido com cancelamento de ruído, iluminação ajustável e espaço com menos estímulos visuais. Estabeleça um cantinho de autorregulação na sala e permita o uso de objetos de autorregulação (fidgets, almofada de pressão) discretamente. Crie rotinas que antecipem momentos de maior carga sensorial, como recreio e educação física."
         }
       ]
     },
@@ -236,16 +182,7 @@
       ],
       "responses": [
         {
-          "level": "Nível 1",
-          "text": "Para alunos com TEA Nível 1, implemente uma agenda visual com o cronograma do dia usando imagens ou ícones simples. Indique as atividades na ordem em que acontecerão e marque o que já foi concluído. Antecipe mudanças na rotina com aviso prévio e cartão de notificação visual. Use a estratégia 'primeiro-depois' para facilitar transições entre atividades. Esse suporte promove previsibilidade e reduz ansiedade."
-        },
-        {
-          "level": "Nível 2",
-          "text": "Para alunos com TEA Nível 2, crie uma agenda visual individual e portátil para o aluno consultar durante o dia. Use pictogramas padronizados (PCS ou símbolos ARASAAC) e inclua cada atividade, transição e momento de pausa. Adicione cartões de 'surpresa' ou 'mudança' para preparar o aluno para imprevistos. Implemente minutagem visual com cronômetro ou ampulheta. Ensine o aluno a consultar sua agenda de forma independente gradualmente."
-        },
-        {
-          "level": "Nível 3",
-          "text": "Para alunos com TEA Nível 3, a rotina visual deve ser muito concreta, com objetos reais, fotos do próprio aluno ou da escola, além de pictogramas. Reduza o número de itens na agenda para os principais momentos do dia. Use caixas de rotina com objetos que representam cada atividade. A introdução de mudanças deve ser gradual e sempre acompanhada de apoio emocional. Toda equipe e família devem manter a rotina consistente para oferecer a previsibilidade que o aluno precisa."
+          "text": "A rotina visual usa imagens ou ícones para representar o cronograma do dia, indicando as atividades na ordem em que acontecerão e marcando o que já foi concluído. Antecipe mudanças na rotina com aviso prévio e cartão de notificação visual. Use a estratégia 'primeiro-depois' para facilitar transições entre atividades. Esse suporte promove previsibilidade, reduz a ansiedade e favorece a autonomia progressiva do aluno com TEA."
         }
       ]
     },
@@ -271,16 +208,7 @@
       ],
       "responses": [
         {
-          "level": "Nível 1",
-          "text": "Para alunos com TEA Nível 1, adapte as avaliações com tempo adicional, ambiente com menos estímulos e instruções escritas além de orais. Permita o uso de recursos visuais e leitura do enunciado pelo professor quando necessário. Avalie processos e não apenas produtos. Prefira questões objetivas quando o aluno tem dificuldade com dissertativas. Use portfólio e observação sistemática como instrumentos complementares à avaliação formal."
-        },
-        {
-          "level": "Nível 2",
-          "text": "Para alunos com TEA Nível 2, substitua ou adapte substancialmente as avaliações formais. Use avaliação por portfólio, observação, demonstração prática e registro fotográfico de atividades. Permita respostas orais gravadas ou com imagens. Reduza a quantidade de questões mantendo a essência do conteúdo. Avalie objetivos do PEI do aluno, não necessariamente os mesmos da turma. O mediador pode realizar a avaliação em ambiente diferenciado."
-        },
-        {
-          "level": "Nível 3",
-          "text": "Para alunos com TEA Nível 3, a avaliação deve ser totalmente individualizada conforme os objetivos do PEI. Use avaliação funcional baseada em observação das habilidades em situações reais. Documente o progresso por meio de vídeo, fotos e registros descritivos. Avalie habilidades de comunicação, autonomia e participação social além dos conteúdos acadêmicos. A família e equipe multidisciplinar devem contribuir com informações para uma avaliação integral."
+          "text": "Para avaliação inclusiva, ofereça tempo adicional, ambiente com menos estímulos e instruções escritas além de orais. Permita o uso de recursos visuais e a leitura do enunciado pelo professor. Avalie processos e não apenas produtos finais. Use portfólio, observação sistemática e demonstração prática como instrumentos complementares. Adapte o formato de resposta conforme as necessidades do aluno: oral, gravado, por imagens ou múltipla escolha."
         }
       ]
     },
@@ -306,16 +234,7 @@
       ],
       "responses": [
         {
-          "level": "Nível 1",
-          "text": "Para alunos com TEA Nível 1, aplicativos como Mind42, Boardmaker e apps de agenda visual apoiam a organização e rotina. Para comunicação, o Snap Core First e Let Me Talk oferecem recursos de CAA. Apps de temporizador visual como Timer+ ajudam na gestão do tempo. Aplicativos de relaxamento com estímulo sensorial controlado podem apoiar a autorregulação. Jogos educacionais estruturados no tablet podem servir como reforço de conteúdos."
-        },
-        {
-          "level": "Nível 2",
-          "text": "Para alunos com TEA Nível 2, priorize aplicativos de comunicação alternativa mais robustos como Proloquo2Go, Grid 3 ou o Cboard (gratuito e em português). Use apps de pictogramas como ARASAAC para criar materiais visuais. Softwares de síntese de voz ajudam alunos com dificuldade de leitura. Apps de vídeo modelação (mostrar como fazer a tarefa em vídeo) são muito eficazes. Configure o dispositivo para minimizar distrações com modo guiado."
-        },
-        {
-          "level": "Nível 3",
-          "text": "Para alunos com TEA Nível 3, avalie dispositivos de comunicação dedicados (SGD) com suporte especializado de fonoaudiólogo. Explore recursos de acessibilidade do próprio dispositivo: controle por switch, varredura, rastreamento ocular. Use aplicativos com baixa demanda cognitiva e alto retorno sensorial para engajamento. Vídeos educacionais curtos com conteúdo de interesse do aluno podem ser poderosas ferramentas de aprendizagem. A configuração e treinamento no uso devem envolver toda equipe."
+          "text": "Recursos tecnológicos úteis incluem: apps de comunicação alternativa como Cboard e LetMeTalk, pictogramas do ARASAAC, temporizadores visuais como Timer+, softwares de síntese de voz e apps de agenda visual. Configure o dispositivo para minimizar distrações com modo guiado ou de foco. Jogos educacionais estruturados podem ser usados como reforço de conteúdos. O apoio de um especialista auxilia na escolha e implementação do recurso mais adequado para cada aluno."
         }
       ]
     },
@@ -341,16 +260,7 @@
       ],
       "responses": [
         {
-          "level": "Nível 1",
-          "text": "Para alunos com TEA Nível 1, ensine estratégias de autorregulação como respiração, uso do termômetro emocional e identificação de gatilhos. Ofereça um espaço seguro na sala para acalmar quando necessário. Use reforço positivo para comportamentos adequados. Estabeleça combinados claros com apoio visual. Identifique as funções dos comportamentos desafiadores (comunicação, fuga, sensorial) para intervir preventivamente. Mantenha rotina previsível e comunique mudanças com antecedência."
-        },
-        {
-          "level": "Nível 2",
-          "text": "Para alunos com TEA Nível 2, elabore um plano de suporte comportamental positivo com equipe e família. Mapeie os gatilhos, antecedentes e consequências dos comportamentos. Ensine habilidades alternativas de comunicação para substituir comportamentos desafiadores. Durante crises, reduza demandas, mantenha ambiente seguro e aguarde o aluno se acalmar sem punições. Use estratégias preventivas baseadas nos padrões identificados. Registro sistemático dos comportamentos ajuda a identificar padrões."
-        },
-        {
-          "level": "Nível 3",
-          "text": "Para alunos com TEA Nível 3 com comportamentos desafiadores intensos, o suporte comportamental deve ser desenvolvido com psicólogo ou analista de comportamento (ABA). Garanta que toda equipe esteja treinada nos protocolos de segurança e intervenção em crise. Nunca aplique punições físicas. Durante meltdowns: mantenha calma, reduza estímulos, ofereça espaço seguro. Após a crise, registre o ocorrido sem julgamentos. Investigue sempre possíveis causas médicas ou sensoriais dos comportamentos."
+          "text": "Para lidar com comportamentos desafiadores no TEA, ensine estratégias de autorregulação como respiração, termômetro emocional e identificação de gatilhos. Ofereça um espaço seguro para acalmar quando necessário. Use reforço positivo para comportamentos adequados e estabeleça combinados claros com apoio visual. Identifique a função de cada comportamento (comunicação, fuga, sensorial) para intervir preventivamente. Mantenha rotina previsível e comunique mudanças com antecedência."
         }
       ]
     }

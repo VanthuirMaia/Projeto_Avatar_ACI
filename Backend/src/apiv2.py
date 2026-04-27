@@ -119,9 +119,11 @@ def _rag_context(query: str, n: int = 5) -> str:
     return ""
 
 
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "openai/gpt-4.1-mini")
+
 def _openai_chat(system: str, user: str, max_tokens: int = 1000, json_mode: bool = False) -> str:
     kwargs = dict(
-        model="gpt-4o",
+        model=OPENAI_MODEL,
         messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
         max_tokens=max_tokens,
         temperature=0.7,
@@ -154,29 +156,35 @@ def gerar_resposta(topic: str, age_group: str) -> tuple[dict, int]:
                     break
                 break
 
-    conteudo_final = resposta_base or ""
+    conteudo_final = ""
 
     # RAG + OpenAI — sempre que disponível (NLU é apenas complemento)
     if use_openai:
         contexto = _rag_context(topic)
         sistema = (
-            "Você é uma especialista em educação inclusiva e TEA. "
-            "Responda de forma clara, objetiva e útil para professores do ensino básico. "
-            "Fundamente sua resposta na literatura especializada quando disponível."
+            "Você é uma assistente especializada em educação inclusiva e TEA (Transtorno do Espectro Autista), "
+            "desenvolvida para auxiliar professores do ensino básico. "
+            "Responda SEMPRE em português brasileiro, de forma direta, clara e prática, "
+            "sem mostrar raciocínio interno, análise prévia ou processo de pensamento. "
+            "Vá direto à resposta. "
+            "Fundamente-se na literatura especializada quando disponível. "
+            "IMPORTANTE: nunca mencione 'Nível 1', 'Nível 2', 'Nível 3', 'nível de suporte' ou qualquer classificação "
+            "por nível de TEA — fale sempre em termos de necessidades individuais do aluno. "
+            "Se a pergunta não estiver relacionada a educação, inclusão, TEA ou necessidades educacionais especiais, "
+            "informe gentilmente que seu foco é esse tema e ofereça ajuda dentro dessa área."
         )
         ctx_section = f"\n\nContexto da literatura especializada:\n{contexto}" if contexto else ""
-        base_section = f"\n\nResposta base disponível:\n{resposta_base}" if resposta_base else ""
         usuario = (
             f"Pergunta: {topic}\n"
             f"Faixa etária: {age_group}"
-            f"{ctx_section}"
-            f"{base_section}\n\n"
+            f"{ctx_section}\n\n"
             "Forneça uma resposta completa, prática e fundamentada."
         )
         try:
-            conteudo_final = _openai_chat(sistema, usuario, max_tokens=600)
-        except Exception:
-            logger.exception("Erro OpenAI em /search, usando resposta base.")
+            conteudo_final = _openai_chat(sistema, usuario, max_tokens=450)
+        except Exception as e:
+            logger.error("Erro OpenAI em /search: %s — usando resposta base.", str(e))
+            conteudo_final = resposta_base or ""
 
     elif use_gemini and resposta_base:
         prompt = (

@@ -31,7 +31,7 @@ export default function DashboardLayout({
       <aside className="w-64 bg-card border-r border-border p-4 flex flex-col">
         
         <div className="mb-8">
-          <h1 className="text-xl font-bold">EduIA</h1>
+          <h1 className="text-xl font-bold">Lorna</h1>
           <p className="text-sm text-muted-foreground">
             Educational Assistant
           </p>
@@ -61,7 +61,7 @@ export default function DashboardLayout({
         </nav>
 
         <div className="mt-auto text-xs text-muted-foreground">
-          © 2026 EduIA
+          © 2026 Lorna
         </div>
       </aside>
 

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { mockMensagensChat, perguntasRapidas } from "../../mock/data";
+import { perguntasRapidas } from "../../mock/data";
 import { buscarRespostaChat } from "../../utils/api";
 import AvatarPlayer, { AvatarEstado } from "../../components/AvatarPlayer";
 import { RespostaChat } from "../../utils/api";
@@ -16,7 +16,7 @@ interface Mensagem {
 }
 
 export default function AssistantPage() {
-  const [mensagens, setMensagens] = useState<Mensagem[]>(mockMensagensChat);
+  const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [input, setInput] = useState("");
   const [processando, setProcessando] = useState(false);
   const [avatarEstado, setAvatarEstado] = useState<AvatarEstado>("aguardando");
@@ -228,7 +228,7 @@ export default function AssistantPage() {
 
       {/* Sidebar do Avatar — altura total da área do chat */}
       <div className="hidden lg:flex lg:flex-col w-96 bg-card border-l border-border p-6 gap-4 overflow-y-auto">
-        <h3 className="font-semibold">Sua Assistente</h3>
+        <h3 className="font-semibold">Lorna</h3>
         <div className="flex-1 flex flex-col justify-center">
           <AvatarPlayer estado={avatarEstado} />
         </div>

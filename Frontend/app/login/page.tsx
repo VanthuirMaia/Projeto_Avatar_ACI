@@ -31,7 +31,7 @@ export default function LoginPage() {
                 <GraduationCap className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-foreground">EduIA</h1>
+                <h1 className="text-4xl font-bold text-foreground">Lorna</h1>
                 <p className="text-muted-foreground">
                   Agente Educacional Inteligente
                 </p>
@@ -109,7 +109,7 @@ export default function LoginPage() {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg mx-auto mb-4">
                 <GraduationCap className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-foreground">EduIA</h1>
+              <h1 className="text-2xl font-bold text-foreground">Lorna</h1>
               <p className="text-muted-foreground">Educação Inclusiva</p>
             </div>
 
