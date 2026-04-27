@@ -5,6 +5,7 @@ import { Send, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { mockMensagensChat, perguntasRapidas } from "../../mock/data";
 import { buscarRespostaChat } from "../../utils/api";
+import AvatarPlayer, { AvatarEstado } from "../../components/AvatarPlayer";
 
 interface Mensagem {
   id: string;
@@ -17,6 +18,8 @@ export default function AssistantPage() {
   const [mensagens, setMensagens] = useState<Mensagem[]>(mockMensagensChat);
   const [input, setInput] = useState("");
   const [processando, setProcessando] = useState(false);
+  const [avatarEstado, setAvatarEstado] = useState<AvatarEstado>("aguardando");
+  const avatarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -45,6 +48,7 @@ export default function AssistantPage() {
     ]);
     setInput("");
     setProcessando(true);
+    setAvatarEstado("pensando");
 
     let conteudo: string;
     try {
@@ -59,6 +63,12 @@ export default function AssistantPage() {
       { id: gerarId(), tipo: "assistant", conteudo, hora: horaNow() },
     ]);
     setProcessando(false);
+
+    // avatar comunica por tempo proporcional ao tamanho da resposta (~12 chars/s)
+    setAvatarEstado("comunicando");
+    if (avatarTimerRef.current) clearTimeout(avatarTimerRef.current);
+    const duracaoMs = Math.max(3000, (conteudo.length / 12) * 1000);
+    avatarTimerRef.current = setTimeout(() => setAvatarEstado("aguardando"), duracaoMs);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -190,20 +200,15 @@ export default function AssistantPage() {
         </div>
       </div>
 
-      {/* Sidebar */}
-      <div className="hidden lg:block w-80 bg-card border-l border-border p-6 space-y-6">
-        <div>
-          <h3 className="font-semibold mb-4">Sua Assistente</h3>
-          <div className="p-6 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 text-center">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-              <Sparkles className="w-10 h-10 text-white" />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Especialista em educação inclusiva.
-            </p>
-          </div>
+      {/* Sidebar do Avatar — altura total da área do chat */}
+      <div className="hidden lg:flex lg:flex-col w-96 bg-card border-l border-border p-6 gap-4 overflow-y-auto">
+        <h3 className="font-semibold">Sua Assistente</h3>
+        <div className="flex-1 flex flex-col justify-center">
+          <AvatarPlayer estado={avatarEstado} />
         </div>
-
+        <p className="text-sm text-muted-foreground text-center">
+          Especialista em educação inclusiva.
+        </p>
       </div>
     </div>
   );

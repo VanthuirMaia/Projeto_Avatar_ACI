@@ -26,8 +26,8 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen bg-background">
-      
+    <div className="flex h-screen overflow-hidden bg-background">
+
       <aside className="w-64 bg-card border-r border-border p-4 flex flex-col">
         
         <div className="mb-8">
@@ -65,7 +65,7 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      <main className="flex-1 p-6 lg:p-8">
+      <main className="flex-1 overflow-y-auto p-6 lg:p-8">
         {children}
       </main>
     </div>
