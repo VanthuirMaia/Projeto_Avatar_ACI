@@ -20,6 +20,8 @@ export default function AssistantPage() {
   const [input, setInput] = useState("");
   const [processando, setProcessando] = useState(false);
   const [avatarEstado, setAvatarEstado] = useState<AvatarEstado>("aguardando");
+  const [mutado, setMutado] = useState(false);
+  const mutadoRef = useRef(false);
   const avatarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -57,6 +59,17 @@ export default function AssistantPage() {
     return () => { window.speechSynthesis?.cancel(); };
   }, []);
 
+  const toggleMudo = () => {
+    const novoValor = !mutadoRef.current;
+    mutadoRef.current = novoValor;
+    setMutado(novoValor);
+    if (novoValor) {
+      audioRef.current?.pause();
+      window.speechSynthesis?.cancel();
+      setAvatarEstado("aguardando");
+    }
+  };
+
   const enviarMensagem = async (texto?: string) => {
     const mensagemTexto = texto || input.trim();
     if (!mensagemTexto || processando) return;
@@ -86,7 +99,9 @@ export default function AssistantPage() {
     setProcessando(false);
     setAvatarEstado("comunicando");
 
-    if (resposta.audio_base64) {
+    if (mutadoRef.current) {
+      setAvatarEstado("aguardando");
+    } else if (resposta.audio_base64) {
       if (audioRef.current) audioRef.current.pause();
       const audio = new Audio(`data:audio/mpeg;base64,${resposta.audio_base64}`);
       audioRef.current = audio;
@@ -230,7 +245,7 @@ export default function AssistantPage() {
       <div className="hidden lg:flex lg:flex-col w-96 bg-card border-l border-border p-6 gap-4 overflow-y-auto">
         <h3 className="font-semibold">Lorna</h3>
         <div className="flex-1 flex flex-col justify-center">
-          <AvatarPlayer estado={avatarEstado} />
+          <AvatarPlayer estado={avatarEstado} mutado={mutado} onToggleMudo={toggleMudo} />
         </div>
         <p className="text-sm text-muted-foreground text-center">
           Especialista em educação inclusiva.

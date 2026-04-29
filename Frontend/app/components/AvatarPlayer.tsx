@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import { Volume2, VolumeX } from "lucide-react";
 
 export type AvatarEstado = "aguardando" | "pensando" | "comunicando";
 
@@ -16,7 +17,13 @@ const LABELS: Record<AvatarEstado, string> = {
   comunicando: "Respondendo",
 };
 
-export default function AvatarPlayer({ estado }: { estado: AvatarEstado }) {
+interface AvatarPlayerProps {
+  estado: AvatarEstado;
+  mutado: boolean;
+  onToggleMudo: () => void;
+}
+
+export default function AvatarPlayer({ estado, mutado, onToggleMudo }: AvatarPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -48,6 +55,23 @@ export default function AvatarPlayer({ estado }: { estado: AvatarEstado }) {
             />
           </div>
         </div>
+
+        {/* Botão mudo/voz — canto inferior direito da moldura */}
+        <button
+          onClick={onToggleMudo}
+          title={mutado ? "Ativar voz" : "Silenciar voz"}
+          className={`
+            absolute bottom-2 right-2 z-10
+            w-9 h-9 rounded-full flex items-center justify-center
+            shadow-md border-2 transition-colors duration-200
+            ${mutado
+              ? "bg-muted border-border text-muted-foreground hover:bg-muted/80"
+              : "bg-primary border-primary text-white hover:bg-primary/90"
+            }
+          `}
+        >
+          {mutado ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+        </button>
       </div>
 
       {/* Indicador de estado */}
@@ -62,6 +86,9 @@ export default function AvatarPlayer({ estado }: { estado: AvatarEstado }) {
           }`}
         />
         <span className="text-xs text-muted-foreground">{LABELS[estado]}</span>
+        {mutado && (
+          <span className="text-xs text-muted-foreground">(mudo)</span>
+        )}
       </div>
     </div>
   );
