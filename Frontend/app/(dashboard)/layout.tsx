@@ -10,6 +10,8 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { AlunosProvider } from "../context/AlunosContext";
+import { ChatHistoryProvider } from "../context/ChatHistoryContext";
+import { AdaptacoesHistoryProvider } from "../context/AdaptacoesHistoryContext";
 
 const menu = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -28,6 +30,8 @@ export default function DashboardLayout({
 
   return (
     <AlunosProvider>
+    <ChatHistoryProvider>
+    <AdaptacoesHistoryProvider>
     <div className="flex h-screen overflow-hidden bg-background">
 
       <aside className="w-64 bg-card border-r border-border p-4 flex flex-col">
@@ -71,6 +75,8 @@ export default function DashboardLayout({
         {children}
       </main>
     </div>
+    </AdaptacoesHistoryProvider>
+    </ChatHistoryProvider>
     </AlunosProvider>
   );
 }

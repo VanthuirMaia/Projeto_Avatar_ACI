@@ -1,55 +1,81 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, UserCircle2, ChevronDown } from "lucide-react";
+import {
+  Send, Sparkles, UserCircle2, ChevronDown,
+  PanelLeftOpen, PanelLeftClose, Plus, Trash2, MessageSquare,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { perguntasRapidas } from "../../mock/data";
 import { buscarRespostaChat } from "../../utils/api";
 import { useAlunos } from "../../context/AlunosContext";
+import { useChatHistory } from "../../context/ChatHistoryContext";
+import type { ChatMensagem as Mensagem } from "../../context/ChatHistoryContext";
+import type { ChatSession } from "../../context/ChatHistoryContext";
 import type { Aluno } from "../../mock/data";
 import AvatarPlayer, { AvatarEstado } from "../../components/AvatarPlayer";
 import { RespostaChat } from "../../utils/api";
 
-interface Mensagem {
-  id: string;
-  tipo: "user" | "assistant";
-  conteudo: string;
-  hora: string;
+// ── Agrupamento por data ──────────────────────────────────────────────────────
+function grupoData(iso: string): string {
+  const d = new Date(iso);
+  const hoje = new Date();
+  const diff = Math.floor((hoje.getTime() - d.getTime()) / 86_400_000);
+  if (diff === 0) return "Hoje";
+  if (diff === 1) return "Ontem";
+  if (diff <= 7) return "Últimos 7 dias";
+  return "Mais antigos";
 }
 
+function agruparSessoes(sessions: ChatSession[]): { label: string; items: ChatSession[] }[] {
+  const map = new Map<string, ChatSession[]>();
+  const ordem = ["Hoje", "Ontem", "Últimos 7 dias", "Mais antigos"];
+  for (const s of sessions) {
+    const g = grupoData(s.updatedAt);
+    if (!map.has(g)) map.set(g, []);
+    map.get(g)!.push(s);
+  }
+  return ordem.filter(l => map.has(l)).map(l => ({ label: l, items: map.get(l)! }));
+}
+
+// ── Componente principal ──────────────────────────────────────────────────────
 export default function AssistantPage() {
   const { alunos, alunoAtivo } = useAlunos();
+  const chatHistory = useChatHistory();
 
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [input, setInput] = useState("");
   const [processando, setProcessando] = useState(false);
   const [avatarEstado, setAvatarEstado] = useState<AvatarEstado>("aguardando");
   const [mutado, setMutado] = useState(false);
-  // Inicializa com o aluno que veio da página de alunos (se houver)
   const [alunoSelecionado, setAlunoSelecionado] = useState<Aluno | null>(alunoAtivo);
+  const [sidebarAberta, setSidebarAberta] = useState(true);
+
   const mutadoRef = useRef(false);
-  const avatarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensagens]);
 
+  useEffect(() => {
+    return () => { window.speechSynthesis?.cancel(); };
+  }, []);
+
+  // Sincroniza sessionIdRef com o contexto
+  useEffect(() => {
+    sessionIdRef.current = chatHistory.activeSessionId;
+  }, [chatHistory.activeSessionId]);
+
   const gerarId = () => crypto.randomUUID();
-
   const horaNow = () =>
-    new Date().toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
+  // ── Audio ──────────────────────────────────────────────────────────────────
   const falarTexto = (texto: string) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
       setAvatarEstado("aguardando");
@@ -63,29 +89,60 @@ export default function AssistantPage() {
     window.speechSynthesis.speak(utterance);
   };
 
-  useEffect(() => {
-    return () => { window.speechSynthesis?.cancel(); };
-  }, []);
-
   const toggleMudo = () => {
-    const novoValor = !mutadoRef.current;
-    mutadoRef.current = novoValor;
-    setMutado(novoValor);
-    if (novoValor) {
+    const novo = !mutadoRef.current;
+    mutadoRef.current = novo;
+    setMutado(novo);
+    if (novo) {
       audioRef.current?.pause();
       window.speechSynthesis?.cancel();
       setAvatarEstado("aguardando");
     }
   };
 
+  // ── Histórico: novo chat ──────────────────────────────────────────────────
+  const novoChat = () => {
+    setMensagens([]);
+    sessionIdRef.current = null;
+    chatHistory.setActiveSessionId(null);
+    audioRef.current?.pause();
+    window.speechSynthesis?.cancel();
+    setAvatarEstado("aguardando");
+  };
+
+  // ── Histórico: carregar sessão ────────────────────────────────────────────
+  const carregarSessao = (session: ChatSession) => {
+    setMensagens(session.mensagens);
+    sessionIdRef.current = session.id;
+    chatHistory.setActiveSessionId(session.id);
+    const aluno = session.alunoId
+      ? (alunos.find(a => a.id === session.alunoId) ?? null)
+      : null;
+    setAlunoSelecionado(aluno);
+    audioRef.current?.pause();
+    window.speechSynthesis?.cancel();
+    setAvatarEstado("aguardando");
+  };
+
+  // ── Envio de mensagem ─────────────────────────────────────────────────────
   const enviarMensagem = async (texto?: string) => {
     const mensagemTexto = texto || input.trim();
     if (!mensagemTexto || processando) return;
 
-    setMensagens((prev) => [
-      ...prev,
-      { id: gerarId(), tipo: "user", conteudo: mensagemTexto, hora: horaNow() },
-    ]);
+    const msgUsuario: Mensagem = { id: gerarId(), tipo: "user", conteudo: mensagemTexto, hora: horaNow() };
+
+    // Cria sessão na primeira mensagem
+    let sessionId = sessionIdRef.current;
+    if (!sessionId) {
+      sessionId = chatHistory.criarSessao(
+        alunoSelecionado?.id ?? null,
+        alunoSelecionado?.nome ?? null,
+      );
+      sessionIdRef.current = sessionId;
+    }
+
+    const comUsuario = [...mensagens, msgUsuario];
+    setMensagens(comUsuario);
     setInput("");
     setProcessando(true);
     setAvatarEstado("pensando");
@@ -100,12 +157,14 @@ export default function AssistantPage() {
       };
     }
 
-    setMensagens((prev) => [
-      ...prev,
-      { id: gerarId(), tipo: "assistant", conteudo: resposta.content, hora: horaNow() },
-    ]);
+    const msgAssistente: Mensagem = { id: gerarId(), tipo: "assistant", conteudo: resposta.content, hora: horaNow() };
+    const mensagensFinais = [...comUsuario, msgAssistente];
+    setMensagens(mensagensFinais);
     setProcessando(false);
     setAvatarEstado("comunicando");
+
+    // Persiste no histórico
+    if (sessionId) chatHistory.atualizarSessao(sessionId, mensagensFinais);
 
     if (mutadoRef.current) {
       setAvatarEstado("aguardando");
@@ -125,20 +184,100 @@ export default function AssistantPage() {
     enviarMensagem();
   };
 
+  const grupos = agruparSessoes(chatHistory.sessions);
+
   return (
     <div className="h-full flex flex-col lg:flex-row bg-background">
-      <div className="flex-1 flex flex-col">
-        <div className="bg-card border-b border-border px-6 py-4">
+
+      {/* ── Sidebar de histórico ── */}
+      <aside
+        className={`
+          hidden lg:flex flex-col flex-shrink-0 bg-card border-r border-border
+          transition-[width] duration-200 overflow-hidden
+          ${sidebarAberta ? "w-60" : "w-0"}
+        `}
+      >
+        <div className="flex flex-col h-full min-w-60">
+          {/* Header da sidebar */}
+          <div className="flex items-center justify-between px-3 pt-4 pb-2">
+            <span className="text-sm font-semibold text-foreground">Conversas</span>
+            <button
+              onClick={() => setSidebarAberta(false)}
+              title="Fechar histórico"
+              className="p-1 rounded hover:bg-accent text-muted-foreground"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Novo chat */}
+          <div className="px-3 pb-3">
+            <button
+              onClick={novoChat}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Novo chat
+            </button>
+          </div>
+
+          {/* Lista de sessões */}
+          <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-4">
+            {!chatHistory.hydrated && (
+              <div className="text-xs text-muted-foreground px-2 py-4 text-center">Carregando…</div>
+            )}
+            {chatHistory.hydrated && grupos.length === 0 && (
+              <div className="text-xs text-muted-foreground px-2 py-4 text-center">
+                Nenhuma conversa ainda
+              </div>
+            )}
+            {grupos.map(grupo => (
+              <div key={grupo.label}>
+                <p className="text-xs text-muted-foreground font-medium px-2 pb-1">{grupo.label}</p>
+                <div className="space-y-0.5">
+                  {grupo.items.map(session => (
+                    <SessionItem
+                      key={session.id}
+                      session={session}
+                      isActive={session.id === chatHistory.activeSessionId}
+                      onSelect={() => carregarSessao(session)}
+                      onDelete={() => {
+                        chatHistory.removerSessao(session.id);
+                        if (session.id === sessionIdRef.current) novoChat();
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      {/* ── Área de chat ── */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <div className="bg-card border-b border-border px-4 py-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-2">
+              {/* Toggle sidebar */}
+              <button
+                onClick={() => setSidebarAberta(v => !v)}
+                title={sidebarAberta ? "Fechar histórico" : "Abrir histórico"}
+                className="hidden lg:flex p-2 rounded-lg hover:bg-accent text-muted-foreground"
+              >
+                {sidebarAberta
+                  ? <PanelLeftClose className="w-4 h-4" />
+                  : <PanelLeftOpen className="w-4 h-4" />
+                }
+              </button>
+
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">Assistente Educacional IA</h1>
-                <p className="text-sm text-muted-foreground">
-                  Especialista em Educação Inclusiva
-                </p>
+                <h1 className="text-lg font-bold leading-tight">Assistente Educacional IA</h1>
+                <p className="text-xs text-muted-foreground">Especialista em Educação Inclusiva</p>
               </div>
             </div>
 
@@ -152,6 +291,8 @@ export default function AssistantPage() {
                     const aluno = alunos.find((a) => a.id === e.target.value) ?? null;
                     setAlunoSelecionado(aluno);
                     setMensagens([]);
+                    sessionIdRef.current = null;
+                    chatHistory.setActiveSessionId(null);
                   }}
                   className="appearance-none text-sm bg-background border border-border rounded-lg pl-3 pr-8 py-2 text-foreground focus:outline-none focus:border-primary cursor-pointer"
                 >
@@ -184,15 +325,14 @@ export default function AssistantPage() {
           )}
         </div>
 
+        {/* Mensagens */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {mensagens.length === 0 && (
             <div className="text-center py-12">
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                 <Sparkles className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">
-                Olá! Como posso ajudar hoje?
-              </h2>
+              <h2 className="text-2xl font-bold mb-2">Olá! Como posso ajudar hoje?</h2>
               <p className="text-muted-foreground">
                 Pergunte sobre educação inclusiva, adaptações pedagógicas e mais.
               </p>
@@ -206,16 +346,13 @@ export default function AssistantPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className={`flex gap-4 ${
-                  mensagem.tipo === "user" ? "justify-end" : "justify-start"
-                }`}
+                className={`flex gap-4 ${mensagem.tipo === "user" ? "justify-end" : "justify-start"}`}
               >
                 {mensagem.tipo === "assistant" && (
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                 )}
-
                 <div
                   className={`max-w-2xl px-5 py-4 rounded-2xl shadow-sm ${
                     mensagem.tipo === "user"
@@ -239,9 +376,7 @@ export default function AssistantPage() {
                         h2: ({ children }) => <h2 className="text-base font-bold mb-1 mt-1">{children}</h2>,
                         h3: ({ children }) => <h3 className="text-sm font-bold mb-1 mt-1">{children}</h3>,
                         blockquote: ({ children }) => (
-                          <blockquote className="border-l-2 border-primary pl-3 italic text-muted-foreground my-2">
-                            {children}
-                          </blockquote>
+                          <blockquote className="border-l-2 border-primary pl-3 italic text-muted-foreground my-2">{children}</blockquote>
                         ),
                         pre: ({ children }) => (
                           <pre className="bg-muted p-3 rounded-lg text-sm font-mono my-2 overflow-x-auto">{children}</pre>
@@ -255,9 +390,7 @@ export default function AssistantPage() {
                       {mensagem.conteudo}
                     </ReactMarkdown>
                   )}
-                  <span className="text-xs opacity-70 mt-2 block">
-                    {mensagem.hora}
-                  </span>
+                  <span className="text-xs opacity-70 mt-2 block">{mensagem.hora}</span>
                 </div>
               </motion.div>
             ))}
@@ -286,6 +419,7 @@ export default function AssistantPage() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Perguntas rápidas */}
         {mensagens.length === 0 && (
           <div className="px-6 pb-4">
             <p className="text-sm text-muted-foreground mb-3">Perguntas rápidas:</p>
@@ -303,6 +437,7 @@ export default function AssistantPage() {
           </div>
         )}
 
+        {/* Input */}
         <div className="bg-card border-t border-border p-4">
           <form onSubmit={handleSubmit} className="flex gap-3">
             <input
@@ -322,7 +457,7 @@ export default function AssistantPage() {
         </div>
       </div>
 
-      {/* Sidebar do Avatar — altura total da área do chat */}
+      {/* ── Sidebar do Avatar ── */}
       <div className="hidden lg:flex lg:flex-col w-96 bg-card border-l border-border p-6 gap-4 overflow-y-auto">
         <h3 className="font-semibold">Lorna</h3>
         <div className="flex-1 flex flex-col justify-center">
@@ -332,6 +467,49 @@ export default function AssistantPage() {
           Especialista em educação inclusiva.
         </p>
       </div>
+    </div>
+  );
+}
+
+// ── Item de sessão ────────────────────────────────────────────────────────────
+function SessionItem({
+  session,
+  isActive,
+  onSelect,
+  onDelete,
+}: {
+  session: ChatSession;
+  isActive: boolean;
+  onSelect: () => void;
+  onDelete: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      className={`group relative flex items-start gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors ${
+        isActive ? "bg-primary/10 text-foreground" : "hover:bg-accent text-muted-foreground hover:text-foreground"
+      }`}
+      onClick={onSelect}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <MessageSquare className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${isActive ? "text-primary" : ""}`} />
+      <div className="flex-1 min-w-0">
+        <p className="text-xs leading-snug truncate">{session.title}</p>
+        {session.alunoNome && (
+          <p className="text-[10px] text-muted-foreground truncate mt-0.5">{session.alunoNome}</p>
+        )}
+      </div>
+      {hovered && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          title="Apagar conversa"
+          className="flex-shrink-0 p-0.5 rounded hover:text-destructive"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
     </div>
   );
 }
