@@ -25,11 +25,28 @@ export interface RespostaChat {
 export async function buscarRespostaChat(
   topic: string,
   ageGroup = "geral",
+  aluno?: Aluno,
 ): Promise<RespostaChat> {
+  const body: Record<string, unknown> = {
+    topic,
+    age_group: aluno ? idadeParaFaixaEtaria(aluno.idade) : ageGroup,
+  };
+
+  if (aluno) {
+    body.aluno_context = {
+      nome: aluno.nome,
+      diagnostico: aluno.diagnostico,
+      serie: aluno.serie,
+      idade: aluno.idade,
+      observacoes: aluno.observacoes ?? "",
+      adaptacoes_preferidas: aluno.adaptacoesPreferidas ?? [],
+    };
+  }
+
   const res = await fetch(`${BACKEND_URL}/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, age_group: ageGroup }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) throw new Error(`Erro ao chamar o backend: ${res.status}`);

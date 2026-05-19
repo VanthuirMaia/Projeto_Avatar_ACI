@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { GraduationCap, Sparkles, Heart, Users, BookOpen } from "lucide-react";
+import { GraduationCap, Sparkles, Heart, Users, BookOpen, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function LoginPage() {
@@ -181,9 +181,19 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            Ao entrar, você concorda com nossos Termos de Uso e Política de Privacidade
-          </p>
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <ShieldCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+              <span>
+                Em conformidade com a{" "}
+                <span className="font-medium text-foreground">LGPD (Lei nº 13.709/2018)</span>.
+                Dados utilizados exclusivamente para suporte pedagógico.
+              </span>
+            </div>
+            <p className="text-center text-xs text-muted-foreground">
+              As conversas com a assistente não são armazenadas em banco de dados.
+            </p>
+          </div>
         </motion.div>
       </div>
     </div>

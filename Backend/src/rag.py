@@ -114,7 +114,7 @@ class RAGSystem:
         self._save()
         logger.info("Ingestão concluída: %d chunks de %d PDFs.", len(self._chunks), len(pdf_files))
 
-    def retrieve(self, query: str, n_results: int = 5) -> str:
+    def retrieve(self, query: str, n_results: int = 3, min_score: float = 0.25) -> str:
         if not self.is_indexed():
             return ""
 
@@ -126,6 +126,9 @@ class RAGSystem:
 
         parts = []
         for idx in idxs:
+            score = float(sims[int(idx)])
+            if score < min_score:
+                continue
             c = self._chunks[int(idx)]
             parts.append(f"[{c['source']}, p.{c['page']}]\n{c['text']}")
 

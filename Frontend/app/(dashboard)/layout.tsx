@@ -9,13 +9,14 @@ import {
   FileText,
   MessageCircle,
 } from "lucide-react";
+import { AlunosProvider } from "../context/AlunosContext";
 
 const menu = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Students", href: "/students", icon: Users },
-  { name: "Assistant", href: "/assistant", icon: MessageCircle },
-  { name: "Adapt Activity", href: "/activity-adaptation", icon: Sparkles },
-  { name: "PEI Editor", href: "/pei-editor", icon: FileText },
+  { name: "Alunos", href: "/students", icon: Users },
+  { name: "Assistente", href: "/assistant", icon: MessageCircle },
+  { name: "Adaptar Atividade", href: "/activity-adaptation", icon: Sparkles },
+  { name: "Editor de PEI", href: "/pei-editor", icon: FileText },
 ];
 
 export default function DashboardLayout({
@@ -26,6 +27,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
+    <AlunosProvider>
     <div className="flex h-screen overflow-hidden bg-background">
 
       <aside className="w-64 bg-card border-r border-border p-4 flex flex-col">
@@ -69,5 +71,6 @@ export default function DashboardLayout({
         {children}
       </main>
     </div>
+    </AlunosProvider>
   );
 }

@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles } from "lucide-react";
+import { Send, Sparkles, UserCircle2, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { perguntasRapidas } from "../../mock/data";
 import { buscarRespostaChat } from "../../utils/api";
+import { useAlunos } from "../../context/AlunosContext";
+import type { Aluno } from "../../mock/data";
 import AvatarPlayer, { AvatarEstado } from "../../components/AvatarPlayer";
 import { RespostaChat } from "../../utils/api";
 
@@ -16,11 +20,15 @@ interface Mensagem {
 }
 
 export default function AssistantPage() {
+  const { alunos, alunoAtivo } = useAlunos();
+
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [input, setInput] = useState("");
   const [processando, setProcessando] = useState(false);
   const [avatarEstado, setAvatarEstado] = useState<AvatarEstado>("aguardando");
   const [mutado, setMutado] = useState(false);
+  // Inicializa com o aluno que veio da página de alunos (se houver)
+  const [alunoSelecionado, setAlunoSelecionado] = useState<Aluno | null>(alunoAtivo);
   const mutadoRef = useRef(false);
   const avatarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -84,7 +92,7 @@ export default function AssistantPage() {
 
     let resposta: RespostaChat;
     try {
-      resposta = await buscarRespostaChat(mensagemTexto, "geral");
+      resposta = await buscarRespostaChat(mensagemTexto, "geral", alunoSelecionado ?? undefined);
     } catch {
       resposta = {
         content: "Não foi possível conectar ao servidor. Verifique se o backend está rodando na porta 5022.",
@@ -121,17 +129,59 @@ export default function AssistantPage() {
     <div className="h-full flex flex-col lg:flex-row bg-background">
       <div className="flex-1 flex flex-col">
         <div className="bg-card border-b border-border px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold">Assistente Educacional IA</h1>
+                <p className="text-sm text-muted-foreground">
+                  Especialista em Educação Inclusiva
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold">Assistente Educacional IA</h1>
-              <p className="text-sm text-muted-foreground">
-                Especialista em Educação Inclusiva
-              </p>
+
+            {/* Selector de aluno */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <UserCircle2 className="w-4 h-4 text-muted-foreground" />
+              <div className="relative">
+                <select
+                  value={alunoSelecionado?.id ?? ""}
+                  onChange={(e) => {
+                    const aluno = alunos.find((a) => a.id === e.target.value) ?? null;
+                    setAlunoSelecionado(aluno);
+                    setMensagens([]);
+                  }}
+                  className="appearance-none text-sm bg-background border border-border rounded-lg pl-3 pr-8 py-2 text-foreground focus:outline-none focus:border-primary cursor-pointer"
+                >
+                  <option value="">Sem aluno selecionado</option>
+                  {alunos.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.nome} — {a.diagnostico}, {a.serie}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+              </div>
             </div>
           </div>
+
+          {/* Banner de contexto ativo */}
+          {alunoSelecionado && (
+            <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-sm">
+              <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+              <span className="text-primary font-medium">Contexto ativo:</span>
+              <span className="text-foreground">
+                {alunoSelecionado.nome} · {alunoSelecionado.diagnostico} · {alunoSelecionado.serie} · {alunoSelecionado.idade} anos
+              </span>
+              {alunoSelecionado.adaptacoesPreferidas?.length ? (
+                <span className="text-muted-foreground">
+                  · {alunoSelecionado.adaptacoesPreferidas.join(", ")}
+                </span>
+              ) : null}
+            </div>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -173,7 +223,38 @@ export default function AssistantPage() {
                       : "bg-card border border-border rounded-tl-sm"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{mensagem.conteudo}</p>
+                  {mensagem.tipo === "user" ? (
+                    <p className="whitespace-pre-wrap">{mensagem.conteudo}</p>
+                  ) : (
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                        em: ({ children }) => <em className="italic">{children}</em>,
+                        ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                        li: ({ children }) => <li className="ml-2 leading-relaxed">{children}</li>,
+                        h1: ({ children }) => <h1 className="text-lg font-bold mb-2 mt-1">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-base font-bold mb-1 mt-1">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-sm font-bold mb-1 mt-1">{children}</h3>,
+                        blockquote: ({ children }) => (
+                          <blockquote className="border-l-2 border-primary pl-3 italic text-muted-foreground my-2">
+                            {children}
+                          </blockquote>
+                        ),
+                        pre: ({ children }) => (
+                          <pre className="bg-muted p-3 rounded-lg text-sm font-mono my-2 overflow-x-auto">{children}</pre>
+                        ),
+                        code: ({ children }) => (
+                          <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">{children}</code>
+                        ),
+                        hr: () => <hr className="border-border my-3" />,
+                      }}
+                    >
+                      {mensagem.conteudo}
+                    </ReactMarkdown>
+                  )}
                   <span className="text-xs opacity-70 mt-2 block">
                     {mensagem.hora}
                   </span>

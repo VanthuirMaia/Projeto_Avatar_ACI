@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import base64
 import logging
@@ -51,6 +52,35 @@ if use_gemini:
     )
 
 executor = ThreadPoolExecutor(max_workers=1)
+
+# ── Expansão de siglas para TTS ────────────────────────────────────────────────
+_ACRONYMS: dict[str, str] = {
+    "TEA":  "T. E. A.",
+    "TDAH": "T. D. A. H.",
+    "PEI":  "P. E. I.",
+    "ACI":  "A. C. I.",
+    "MEC":  "M. E. C.",
+    "LBI":  "L. B. I.",
+    "BNCC": "B. N. C. C.",
+    "AEE":  "A. E. E.",
+    "PNEE": "P. N. E. E.",
+    "NEE":  "N. E. E.",
+    "AAC":  "A. A. C.",
+    "CID":  "C. I. D.",
+    "DSM":  "D. S. M.",
+    "UPE":  "U. P. E.",
+    "LGPD": "L. G. P. D.",
+    "CEI":  "C. E. I.",
+    "CNS":  "C. N. S.",
+}
+_ACRONYM_RE = re.compile(
+    r'\b(' + '|'.join(re.escape(k) for k in _ACRONYMS) + r')\b'
+)
+
+def _expand_acronyms_for_tts(text: str) -> str:
+    """Expande siglas para pronúncia letra a letra antes de enviar ao TTS."""
+    return _ACRONYM_RE.sub(lambda m: _ACRONYMS[m.group(0)], text)
+
 
 # ── ElevenLabs TTS ─────────────────────────────────────────────────────────────
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
@@ -113,7 +143,7 @@ intents = load_intents(str(_DATA / "intents.json"))
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
-def _rag_context(query: str, n: int = 5) -> str:
+def _rag_context(query: str, n: int = 3) -> str:
     if rag_system and rag_system.is_indexed():
         return rag_system.retrieve(query, n_results=n)
     return ""
@@ -143,7 +173,7 @@ def _gemini_call(prompt: str) -> str:
 
 
 # ── /search ────────────────────────────────────────────────────────────────────
-def gerar_resposta(topic: str, age_group: str) -> tuple[dict, int]:
+def gerar_resposta(topic: str, age_group: str, aluno_context: dict | None = None) -> tuple[dict, int]:
     tag1, prob1, tag2, prob2 = processar_texto(topic)
 
     # Tenta buscar resposta base no intents.json quando NLU tem boa confiança
@@ -157,31 +187,61 @@ def gerar_resposta(topic: str, age_group: str) -> tuple[dict, int]:
                 break
 
     conteudo_final = ""
+    falado = ""  # versão curta para TTS
 
     # RAG + OpenAI — sempre que disponível (NLU é apenas complemento)
     if use_openai:
         contexto = _rag_context(topic)
         sistema = (
-            "Você é uma assistente especializada em educação inclusiva e TEA (Transtorno do Espectro Autista), "
-            "desenvolvida para auxiliar professores do ensino básico. "
-            "Responda SEMPRE em português brasileiro, de forma direta, clara e prática, "
-            "sem mostrar raciocínio interno, análise prévia ou processo de pensamento. "
-            "Vá direto à resposta. "
-            "Fundamente-se na literatura especializada quando disponível. "
-            "IMPORTANTE: nunca mencione 'Nível 1', 'Nível 2', 'Nível 3', 'nível de suporte' ou qualquer classificação "
-            "por nível de TEA — fale sempre em termos de necessidades individuais do aluno. "
-            "Se a pergunta não estiver relacionada a educação, inclusão, TEA ou necessidades educacionais especiais, "
+            "Você é Lorna, assistente especializada em educação inclusiva e TEA "
+            "(Transtorno do Espectro Autista), criada para auxiliar professores "
+            "do ensino básico brasileiro no dia a dia da escola. "
+            "Seu trabalho está alinhado à BNCC, à LBI (Lei Brasileira de Inclusão, nº 13.146/2015) "
+            "e à Política Nacional de Educação Especial na Perspectiva da Educação Inclusiva (MEC/2008). "
+            "Responda SEMPRE em português brasileiro claro, direto e acessível para professores. "
+            "Não mostre raciocínio interno nem processo de pensamento — vá direto à resposta. "
+            "Use linguagem próxima da realidade escolar brasileira: "
+            "cite estratégias aplicáveis em turmas regulares, mencione recursos do AEE quando pertinente "
+            "e considere as limitações reais do professor (turmas grandes, poucos recursos). "
+            "Prefira exemplos concretos e práticos a definições teóricas. "
+            "Fundamente-se na literatura especializada fornecida no contexto quando disponível. "
+            "NUNCA mencione 'Nível 1', 'Nível 2', 'Nível 3' ou 'nível de suporte' de TEA — "
+            "fale sempre em termos das necessidades individuais do aluno. "
+            "Se a pergunta não estiver relacionada a educação, inclusão ou necessidades educacionais especiais, "
             "informe gentilmente que seu foco é esse tema e ofereça ajuda dentro dessa área."
         )
+
+        aluno_section = ""
+        if aluno_context:
+            adaptacoes = ", ".join(aluno_context.get("adaptacoes_preferidas", [])) or "não informadas"
+            aluno_section = (
+                f"\n\nPERFIL DO ALUNO:\n"
+                f"- Nome: {aluno_context.get('nome', 'não informado')}\n"
+                f"- Diagnóstico: {aluno_context.get('diagnostico', 'não informado')}\n"
+                f"- Série: {aluno_context.get('serie', 'não informada')}\n"
+                f"- Idade: {aluno_context.get('idade', '?')} anos\n"
+                f"- Observações: {aluno_context.get('observacoes', 'nenhuma')}\n"
+                f"- Adaptações preferidas: {adaptacoes}\n"
+                f"Personalize a resposta considerando esse perfil específico."
+            )
+
         ctx_section = f"\n\nContexto da literatura especializada:\n{contexto}" if contexto else ""
         usuario = (
             f"Pergunta: {topic}\n"
             f"Faixa etária: {age_group}"
+            f"{aluno_section}"
             f"{ctx_section}\n\n"
-            "Forneça uma resposta completa, prática e fundamentada."
+            "Retorne JSON com exatamente dois campos:\n"
+            '"resposta": resposta completa e prática em markdown (use listas e negrito). '
+            "Sem raciocínio interno.\n"
+            '"falado": resumo oral para o avatar falar, máx. 2 frases curtas (~200 chars), '
+            "sem markdown, tom direto e acolhedor."
         )
         try:
-            conteudo_final = _openai_chat(sistema, usuario, max_tokens=450)
+            raw = _openai_chat(sistema, usuario, max_tokens=600, json_mode=True)
+            parsed = json.loads(raw)
+            conteudo_final = parsed.get("resposta") or raw
+            falado = parsed.get("falado", "").strip()
         except Exception as e:
             logger.error("Erro OpenAI em /search: %s — usando resposta base.", str(e))
             conteudo_final = resposta_base or ""
@@ -198,7 +258,9 @@ def gerar_resposta(topic: str, age_group: str) -> tuple[dict, int]:
     if not conteudo_final:
         conteudo_final = "Desculpe, não consegui processar sua pergunta. Tente novamente."
 
-    audio_b64 = _elevenlabs_tts(conteudo_final)
+    # TTS usa a versão curta para economizar créditos ElevenLabs
+    tts_input = falado if falado else conteudo_final[:300]
+    audio_b64 = _elevenlabs_tts(_expand_acronyms_for_tts(tts_input))
 
     return {
         "content": conteudo_final,
@@ -213,11 +275,14 @@ def search():
     data = request.get_json(force=True)
     topic = data.get("topic", "").strip()
     age_group = data.get("age_group", "acima de 15 anos")
+    aluno_context = data.get("aluno_context")  # optional student profile
 
     if not topic:
         return jsonify({"error": "Tópico não fornecido"}), 400
 
-    result, status = gerar_resposta(topic, age_group)
+    # LGPD: não logar conteúdo da pergunta nem dados do aluno
+    logger.info("/search — age_group=%s, com_aluno=%s", age_group, bool(aluno_context))
+    result, status = gerar_resposta(topic, age_group, aluno_context)
     return jsonify(result), status
 
 
@@ -240,13 +305,15 @@ def adapt_activity():
 
     # RAG: recupera orientações pedagógicas relevantes
     query_rag = f"adaptação de atividade para {diagnostico}"
-    contexto = _rag_context(query_rag, n=4)
+    contexto = _rag_context(query_rag, n=3)
     ctx_section = f"\n\nOrientações da literatura especializada:\n{contexto}" if contexto else ""
 
     sistema = (
-        "Você é uma especialista em educação inclusiva com expertise em adaptações pedagógicas "
-        "para alunos com TEA e outras necessidades educacionais especiais. "
-        "Você adapta atividades escolares de forma clara, acessível e personalizada ao perfil do aluno. "
+        "Você é Lorna, especialista em educação inclusiva e adaptações pedagógicas "
+        "para alunos com TEA e outras necessidades educacionais especiais no contexto escolar brasileiro. "
+        "Adapte atividades de forma clara, acessível e personalizada ao perfil do aluno, "
+        "alinhada à BNCC e às diretrizes do MEC para educação inclusiva. "
+        "Produza adaptações práticas que o professor possa aplicar diretamente em sala de aula regular. "
         "Use as orientações da literatura especializada quando disponíveis."
     )
     usuario = (
@@ -282,13 +349,15 @@ def suggest_pei():
 
     # RAG: recupera referências sobre PEI para esse diagnóstico
     query_rag = f"plano educacional individualizado PEI {diagnostico}"
-    contexto = _rag_context(query_rag, n=4)
+    contexto = _rag_context(query_rag, n=3)
     ctx_section = f"\n\nReferências da literatura especializada:\n{contexto}" if contexto else ""
 
     sistema = (
-        "Você é uma especialista em educação inclusiva com expertise em elaboração de PEI "
-        "(Plano Educacional Individualizado) para alunos com TEA e outras necessidades educacionais especiais. "
-        "Você sugere objetivos, estratégias, recursos e avaliações específicos, mensuráveis e adequados. "
+        "Você é Lorna, especialista em educação inclusiva e elaboração de PEI "
+        "(Plano Educacional Individualizado) para alunos com TEA e outras necessidades educacionais especiais "
+        "no contexto escolar brasileiro. "
+        "Sugira objetivos, estratégias, recursos e avaliações específicos, mensuráveis e aplicáveis "
+        "na realidade das escolas públicas e privadas brasileiras, alinhados à BNCC e à LBI. "
         "Fundamente as sugestões na literatura especializada quando disponível."
     )
     usuario = (
