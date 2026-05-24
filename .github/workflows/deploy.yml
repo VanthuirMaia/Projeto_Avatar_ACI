@@ -19,8 +19,13 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/avatartea
-            git update-index --assume-unchanged Backend/data/users.json 2>/dev/null || true
-            git pull origin main
+            # Preserva dados de produção antes do reset
+            cp Backend/data/users.json /tmp/avatartea_users_backup.json 2>/dev/null || true
+            # Força sincronização com o remoto (evita conflitos silenciosos)
+            git fetch origin main
+            git reset --hard origin/main
+            # Restaura dados de produção após o reset
+            [ -f /tmp/avatartea_users_backup.json ] && cp /tmp/avatartea_users_backup.json Backend/data/users.json
             [ -f ./Backend/data/users.json ] || echo '{"users":[]}' > ./Backend/data/users.json
             docker compose -f docker-compose.prod.yml up -d --build
             echo "==> Health check (aguardando 15s)..."
