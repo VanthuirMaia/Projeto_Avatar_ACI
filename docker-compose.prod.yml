@@ -1,0 +1,58 @@
+services:
+
+  avatartea-backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: avatartea_backend
+    restart: always
+    expose:
+      - "5022"
+    env_file:
+      - ./Backend/.env
+    volumes:
+      - ./Backend/data/rag_store:/app/data/rag_store:ro
+      - ./docs_RAG_TEA:/app/docs_RAG_TEA:ro
+      - ./videos:/app/videos:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5022/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.avatartea-api.rule=Host(`avatartea.axiodev.cloud`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.avatartea-api.entrypoints=websecure"
+      - "traefik.http.routers.avatartea-api.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.avatartea-strip.stripprefix.prefixes=/api"
+      - "traefik.http.routers.avatartea-api.middlewares=avatartea-strip"
+      - "traefik.http.services.avatartea-api.loadbalancer.server.port=5022"
+    networks:
+      - gestto-network
+
+  avatartea-frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_BACKEND_URL=https://avatartea.axiodev.cloud/api
+    container_name: avatartea_frontend
+    restart: always
+    expose:
+      - "3000"
+    depends_on:
+      avatartea-backend:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.avatartea.rule=Host(`avatartea.axiodev.cloud`)"
+      - "traefik.http.routers.avatartea.entrypoints=websecure"
+      - "traefik.http.routers.avatartea.tls.certresolver=letsencrypt"
+      - "traefik.http.services.avatartea.loadbalancer.server.port=3000"
+    networks:
+      - gestto-network
+
+networks:
+  gestto-network:
+    external: true

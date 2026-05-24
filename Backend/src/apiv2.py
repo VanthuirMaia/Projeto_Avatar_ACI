@@ -55,9 +55,9 @@ executor = ThreadPoolExecutor(max_workers=1)
 
 # ── Expansão de siglas para TTS ────────────────────────────────────────────────
 _ACRONYMS: dict[str, str] = {
-    "TEA":  "T. E. A.",
+    "TEA":  "TÉA",
     "TDAH": "T. D. A. H.",
-    "PEI":  "P. E. I.",
+    "PEI":  "PÊI",
     "ACI":  "A. C. I.",
     "MEC":  "M. E. C.",
     "LBI":  "L. B. I.",
@@ -66,7 +66,7 @@ _ACRONYMS: dict[str, str] = {
     "PNEE": "P. N. E. E.",
     "NEE":  "N. E. E.",
     "AAC":  "A. A. C.",
-    "CID":  "C. I. D.",
+    "CID":  "SÍDI",
     "DSM":  "D. S. M.",
     "UPE":  "U. P. E.",
     "LGPD": "L. G. P. D.",
