@@ -15,4 +15,5 @@ COPY data/ ./data/
 
 EXPOSE 5022
 
-CMD ["python", "src/apiv2.py"]
+WORKDIR /app/src
+CMD ["python", "apiv2.py"]

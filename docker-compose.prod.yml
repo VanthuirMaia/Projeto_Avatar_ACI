@@ -29,7 +29,7 @@ services:
       - "traefik.http.routers.avatartea-api.middlewares=avatartea-strip"
       - "traefik.http.services.avatartea-api.loadbalancer.server.port=5022"
     networks:
-      - gestto-network
+      - gestto_gestto-network
 
   avatartea-frontend:
     build:
@@ -51,8 +51,8 @@ services:
       - "traefik.http.routers.avatartea.tls.certresolver=letsencrypt"
       - "traefik.http.services.avatartea.loadbalancer.server.port=3000"
     networks:
-      - gestto-network
+      - gestto_gestto-network
 
 networks:
-  gestto-network:
+  gestto_gestto-network:
     external: true
