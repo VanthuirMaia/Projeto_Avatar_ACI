@@ -160,4 +160,4 @@ Testa quais vozes são acessíveis no plano atual (útil para debugging).
 - **Bruno Morato** — Gerente de Projetos
 - **João Araújo** — backend Flask + NLU (base)
 - **Ana** — frontend Next.js (base)
-- **Vanthuir Maia** — integração, RAG, regra de negócio, retreinamento NLU
+- **Vanthuir Maia** — integração, RAG, regra de negócio, retreinamento NLU.
