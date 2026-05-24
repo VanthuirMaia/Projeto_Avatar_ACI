@@ -102,7 +102,7 @@ export default function PEIEditorPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-6 lg:p-12">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-foreground mb-2">
+            <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2">
               Plano Educacional Individualizado
             </h1>
             <p className="text-muted-foreground">
@@ -184,17 +184,17 @@ export default function PEIEditorPage() {
                   />
                 </div>
 
-                <div className="mt-12 flex gap-4 pb-8">
+                <div className="mt-8 sm:mt-12 flex gap-4 pb-8">
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-card border rounded-lg flex items-center justify-center gap-2"
+                    className="flex-1 px-4 sm:px-6 py-3 bg-card border rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
                   >
                     <Save className="w-5 h-5" />
                     Salvar
                   </button>
                   <button
                     type="button"
-                    className="flex-1 px-6 py-3 bg-primary text-white rounded-lg flex items-center justify-center gap-2"
+                    className="flex-1 px-4 sm:px-6 py-3 bg-primary text-white rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
                   >
                     <Download className="w-5 h-5" />
                     Exportar

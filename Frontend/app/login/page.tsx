@@ -1,19 +1,47 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GraduationCap, Sparkles, Heart, Users, BookOpen, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5022";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    router.push("/dashboard");
+    setErro("");
+    setEnviando(true);
+    try {
+      const resp = await fetch(`${BACKEND_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), senha }),
+      });
+      const json = await resp.json();
+      if (!resp.ok) {
+        if (resp.status === 403) {
+          setErro("Cadastro ainda não aprovado. Aguarde.");
+        } else {
+          setErro(json.error ?? "Credenciais inválidas.");
+        }
+        return;
+      }
+      localStorage.setItem("avatartea_token", json.token);
+      localStorage.setItem("avatartea_user", json.nome);
+      router.push("/dashboard");
+    } catch {
+      setErro("Não foi possível conectar ao servidor. Verifique se o backend está rodando.");
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
@@ -132,7 +160,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu.email@escola.edu.br"
-                  className="w-full px-4 py-3 bg-input-background rounded-lg border border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full px-4 py-3 bg-input-background rounded-lg border border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
                   required
                 />
               </div>
@@ -146,7 +174,7 @@ export default function LoginPage() {
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 bg-input-background rounded-lg border border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full px-4 py-3 bg-input-background rounded-lg border border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
                   required
                 />
               </div>
@@ -163,20 +191,27 @@ export default function LoginPage() {
                 </a>
               </div>
 
+              {erro && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {erro}
+                </div>
+              )}
+
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-semibold py-3 rounded-lg transition-all shadow-lg hover:shadow-xl"
+                disabled={enviando}
+                className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-semibold py-3 rounded-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-60 min-h-[44px]"
               >
-                Entrar
+                {enviando ? "Entrando..." : "Entrar"}
               </button>
             </form>
 
             <div className="mt-8 pt-6 border-t border-border text-center">
               <p className="text-sm text-muted-foreground">
-                Primeira vez aqui?{" "}
-                <a href="#" className="text-primary font-medium hover:underline">
-                  Criar conta
-                </a>
+                Não tem conta?{" "}
+                <Link href="/register" className="text-primary font-medium hover:underline">
+                  Cadastre-se
+                </Link>
               </p>
             </div>
           </div>

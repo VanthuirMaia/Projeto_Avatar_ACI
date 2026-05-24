@@ -258,13 +258,13 @@ export default function AssistantPage() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <div className="bg-card border-b border-border px-4 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               {/* Toggle sidebar */}
               <button
                 onClick={() => setSidebarAberta(v => !v)}
                 title={sidebarAberta ? "Fechar histórico" : "Abrir histórico"}
-                className="hidden lg:flex p-2 rounded-lg hover:bg-accent text-muted-foreground"
+                className="hidden lg:flex p-2 rounded-lg hover:bg-accent text-muted-foreground flex-shrink-0"
               >
                 {sidebarAberta
                   ? <PanelLeftClose className="w-4 h-4" />
@@ -272,18 +272,18 @@ export default function AssistantPage() {
                 }
               </button>
 
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div>
-                <h1 className="text-lg font-bold leading-tight">Assistente Educacional IA</h1>
-                <p className="text-xs text-muted-foreground">Especialista em Educação Inclusiva</p>
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-lg font-bold leading-tight truncate">Assistente IA</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">Especialista em Educação Inclusiva</p>
               </div>
             </div>
 
             {/* Selector de aluno */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <UserCircle2 className="w-4 h-4 text-muted-foreground" />
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <UserCircle2 className="w-4 h-4 text-muted-foreground hidden sm:block" />
               <div className="relative">
                 <select
                   value={alunoSelecionado?.id ?? ""}
@@ -294,39 +294,34 @@ export default function AssistantPage() {
                     sessionIdRef.current = null;
                     chatHistory.setActiveSessionId(null);
                   }}
-                  className="appearance-none text-sm bg-background border border-border rounded-lg pl-3 pr-8 py-2 text-foreground focus:outline-none focus:border-primary cursor-pointer"
+                  className="appearance-none text-xs sm:text-sm bg-background border border-border rounded-lg pl-2 sm:pl-3 pr-6 sm:pr-8 py-2 text-foreground focus:outline-none focus:border-primary cursor-pointer max-w-[140px] sm:max-w-none"
                 >
-                  <option value="">Sem aluno selecionado</option>
+                  <option value="">Sem aluno</option>
                   {alunos.map((a) => (
                     <option key={a.id} value={a.id}>
                       {a.nome} — {a.diagnostico}, {a.serie}
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                <ChevronDown className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground pointer-events-none" />
               </div>
             </div>
           </div>
 
           {/* Banner de contexto ativo */}
           {alunoSelecionado && (
-            <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-sm">
+            <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-1.5 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-xs sm:text-sm">
               <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-              <span className="text-primary font-medium">Contexto ativo:</span>
+              <span className="text-primary font-medium">Contexto:</span>
               <span className="text-foreground">
-                {alunoSelecionado.nome} · {alunoSelecionado.diagnostico} · {alunoSelecionado.serie} · {alunoSelecionado.idade} anos
+                {alunoSelecionado.nome} · {alunoSelecionado.diagnostico} · {alunoSelecionado.serie}
               </span>
-              {alunoSelecionado.adaptacoesPreferidas?.length ? (
-                <span className="text-muted-foreground">
-                  · {alunoSelecionado.adaptacoesPreferidas.join(", ")}
-                </span>
-              ) : null}
             </div>
           )}
         </div>
 
         {/* Mensagens */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
           {mensagens.length === 0 && (
             <div className="text-center py-12">
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
@@ -354,7 +349,7 @@ export default function AssistantPage() {
                   </div>
                 )}
                 <div
-                  className={`max-w-2xl px-5 py-4 rounded-2xl shadow-sm ${
+                  className={`max-w-[85vw] sm:max-w-2xl px-3 py-3 sm:px-5 sm:py-4 rounded-2xl shadow-sm ${
                     mensagem.tipo === "user"
                       ? "bg-primary text-white rounded-tr-sm"
                       : "bg-card border border-border rounded-tl-sm"
@@ -421,14 +416,14 @@ export default function AssistantPage() {
 
         {/* Perguntas rápidas */}
         {mensagens.length === 0 && (
-          <div className="px-6 pb-4">
-            <p className="text-sm text-muted-foreground mb-3">Perguntas rápidas:</p>
+          <div className="px-3 sm:px-6 pb-3 sm:pb-4">
+            <p className="text-sm text-muted-foreground mb-2 sm:mb-3">Perguntas rápidas:</p>
             <div className="flex flex-wrap gap-2">
               {perguntasRapidas.map((pergunta, i) => (
                 <button
                   key={i}
                   onClick={() => enviarMensagem(pergunta)}
-                  className="px-4 py-2 bg-card border border-border rounded-full text-sm hover:border-primary"
+                  className="px-3 py-2 sm:px-4 bg-card border border-border rounded-full text-xs sm:text-sm hover:border-primary min-h-[44px]"
                 >
                   {pergunta}
                 </button>
@@ -437,19 +432,19 @@ export default function AssistantPage() {
           </div>
         )}
 
-        {/* Input */}
-        <div className="bg-card border-t border-border p-4">
-          <form onSubmit={handleSubmit} className="flex gap-3">
+        {/* Input — fixo no bottom em mobile via estrutura flex */}
+        <div className="bg-card border-t border-border p-3 sm:p-4 flex-shrink-0">
+          <form onSubmit={handleSubmit} className="flex gap-2 sm:gap-3">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Digite sua pergunta..."
-              className="flex-1 px-4 py-3 border border-border rounded-lg"
+              className="flex-1 px-3 sm:px-4 py-3 border border-border rounded-lg text-sm sm:text-base min-h-[44px]"
             />
             <button
               type="submit"
               disabled={!input.trim() || processando}
-              className="px-6 py-3 bg-primary text-white rounded-lg flex items-center gap-2 disabled:opacity-50"
+              className="px-4 sm:px-6 py-3 bg-primary text-white rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 min-h-[44px] min-w-[44px] flex-shrink-0"
             >
               <Send className="w-5 h-5" />
             </button>

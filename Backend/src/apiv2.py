@@ -1,13 +1,22 @@
 import os
 import re
 import json
+import uuid
+import hashlib
 import base64
 import logging
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 import requests as http_requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
+try:
+    import jwt as _pyjwt
+    _HAS_JWT = True
+except ImportError:
+    _HAS_JWT = False
 
 from utils2 import load_intents
 from nlu import processar_texto
@@ -27,6 +36,12 @@ logger = logging.getLogger(__name__)
 _SRC = Path(__file__).parent
 _DATA = _SRC.parent / "data"
 _DOCS = _SRC.parent.parent / "docs_RAG_TEA"
+
+# ── Auth config ────────────────────────────────────────────────────────────────
+_USERS_FILE = _DATA / "users.json"
+_JWT_SECRET = os.getenv("JWT_SECRET", "avatartea_secret_2025")
+_ADMIN_KEY  = os.getenv("ADMIN_KEY",  "avatartea_admin_2025")
+_SALT       = "avatartea2025"
 
 # ── OpenAI ─────────────────────────────────────────────────────────────────────
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
@@ -453,6 +468,120 @@ def health():
         "rag_indexed": rag_system.is_indexed() if rag_system else False,
         "rag_chunks": len(rag_system._chunks) if rag_system else 0,
     })
+
+
+# ── Auth helpers ───────────────────────────────────────────────────────────────
+def _load_users() -> dict:
+    if not _USERS_FILE.exists():
+        return {"users": []}
+    with open(_USERS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _save_users(data: dict):
+    with open(_USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _hash_senha(email: str, senha: str) -> str:
+    raw = f"{email}{senha}{_SALT}"
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def _gerar_token(user: dict) -> str:
+    payload = {
+        "sub": user["id"],
+        "nome": user["nome"],
+        "exp": datetime.now(timezone.utc) + timedelta(hours=8),
+    }
+    return _pyjwt.encode(payload, _JWT_SECRET, algorithm="HS256")
+
+
+# ── POST /auth/register ────────────────────────────────────────────────────────
+@app.route("/auth/register", methods=["POST"])
+def auth_register():
+    data = request.get_json(force=True) or {}
+    nome  = data.get("nome",  "").strip()
+    email = data.get("email", "").strip().lower()
+    senha = data.get("senha", "")
+
+    if not nome or not email or not senha:
+        return jsonify({"error": "Nome, email e senha são obrigatórios."}), 400
+
+    db = _load_users()
+    if any(u["email"] == email for u in db["users"]):
+        return jsonify({"error": "E-mail já cadastrado."}), 409
+
+    user = {
+        "id":         str(uuid.uuid4()),
+        "nome":       nome,
+        "email":      email,
+        "senha_hash": _hash_senha(email, senha),
+        "status":     "pendente",
+        "criado_em":  datetime.now(timezone.utc).isoformat(),
+    }
+    db["users"].append(user)
+    _save_users(db)
+    return jsonify({"message": "Cadastro realizado. Aguarde aprovação."}), 201
+
+
+# ── POST /auth/login ───────────────────────────────────────────────────────────
+@app.route("/auth/login", methods=["POST"])
+def auth_login():
+    if not _HAS_JWT:
+        return jsonify({"error": "PyJWT não instalado no servidor."}), 503
+
+    data  = request.get_json(force=True) or {}
+    email = data.get("email", "").strip().lower()
+    senha = data.get("senha", "")
+
+    if not email or not senha:
+        return jsonify({"error": "Email e senha são obrigatórios."}), 400
+
+    db   = _load_users()
+    user = next((u for u in db["users"] if u["email"] == email), None)
+
+    if not user or user["senha_hash"] != _hash_senha(email, senha):
+        return jsonify({"error": "Email ou senha incorretos."}), 401
+
+    if user["status"] == "pendente":
+        return jsonify({"error": "Cadastro ainda não aprovado. Aguarde."}), 403
+    if user["status"] == "bloqueado":
+        return jsonify({"error": "Conta bloqueada. Entre em contato com o administrador."}), 403
+
+    token = _gerar_token(user)
+    return jsonify({"token": token, "nome": user["nome"]}), 200
+
+
+# ── GET /auth/admin/users ──────────────────────────────────────────────────────
+@app.route("/auth/admin/users", methods=["GET"])
+def admin_list_users():
+    if request.headers.get("X-Admin-Key") != _ADMIN_KEY:
+        return jsonify({"error": "Acesso negado."}), 403
+    db = _load_users()
+    users_safe = [{k: v for k, v in u.items() if k != "senha_hash"} for u in db["users"]]
+    return jsonify({"users": users_safe}), 200
+
+
+# ── PATCH /auth/admin/users/<id> ───────────────────────────────────────────────
+@app.route("/auth/admin/users/<user_id>", methods=["PATCH"])
+def admin_update_user(user_id: str):
+    if request.headers.get("X-Admin-Key") != _ADMIN_KEY:
+        return jsonify({"error": "Acesso negado."}), 403
+
+    data       = request.get_json(force=True) or {}
+    novo_status = data.get("status", "").strip()
+    if novo_status not in ("aprovado", "bloqueado"):
+        return jsonify({"error": "Status inválido. Use 'aprovado' ou 'bloqueado'."}), 400
+
+    db = _load_users()
+    for u in db["users"]:
+        if u["id"] == user_id:
+            u["status"] = novo_status
+            _save_users(db)
+            return jsonify({"message": f"Status atualizado para {novo_status}."}), 200
+
+    return jsonify({"error": "Usuário não encontrado."}), 404
 
 
 if __name__ == "__main__":

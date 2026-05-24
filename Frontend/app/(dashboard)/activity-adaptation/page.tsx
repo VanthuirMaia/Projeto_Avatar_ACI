@@ -338,7 +338,7 @@ export default function AdaptarAtividadePage() {
               <motion.div
                 key="step1"
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                className="bg-card rounded-2xl p-8 border border-border shadow-lg"
+                className="bg-card rounded-2xl p-4 sm:p-8 border border-border shadow-lg"
               >
                 <textarea
                   value={textoOriginal}
@@ -350,7 +350,7 @@ export default function AdaptarAtividadePage() {
                   <button
                     onClick={() => setCurrentStep(2)}
                     disabled={!textoOriginal.trim()}
-                    className="px-6 py-3 bg-primary text-white rounded-lg flex items-center gap-2 disabled:opacity-50"
+                    className="px-4 sm:px-6 py-3 bg-primary text-white rounded-lg flex items-center gap-2 disabled:opacity-50 min-h-[44px]"
                   >
                     Próximo <ArrowRight className="w-5 h-5" />
                   </button>
@@ -363,7 +363,7 @@ export default function AdaptarAtividadePage() {
               <motion.div
                 key="step2"
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                className="bg-card rounded-2xl p-8 border border-border shadow-lg"
+                className="bg-card rounded-2xl p-4 sm:p-8 border border-border shadow-lg"
               >
                 <p className="text-sm text-muted-foreground mb-4">Selecione o aluno para personalizar a adaptação:</p>
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -388,13 +388,13 @@ export default function AdaptarAtividadePage() {
                   ))}
                 </div>
                 <div className="flex justify-between mt-8">
-                  <button onClick={() => setCurrentStep(1)} className="px-6 py-3 bg-muted rounded-lg flex items-center gap-2">
+                  <button onClick={() => setCurrentStep(1)} className="px-4 sm:px-6 py-3 bg-muted rounded-lg flex items-center gap-2 min-h-[44px]">
                     <ArrowLeft className="w-5 h-5" /> Voltar
                   </button>
                   <button
                     onClick={handleAdaptar}
                     disabled={!alunoId}
-                    className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex items-center gap-2 disabled:opacity-50"
+                    className="px-4 sm:px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg flex items-center gap-2 disabled:opacity-50 min-h-[44px]"
                   >
                     <Sparkles className="w-5 h-5" /> Adaptar com IA
                   </button>
