@@ -19,7 +19,9 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/avatartea
+            git update-index --assume-unchanged Backend/data/users.json 2>/dev/null || true
             git pull origin main
+            [ -f ./Backend/data/users.json ] || echo '{"users":[]}' > ./Backend/data/users.json
             docker compose -f docker-compose.prod.yml up -d --build
             echo "==> Health check (aguardando 15s)..."
             sleep 15

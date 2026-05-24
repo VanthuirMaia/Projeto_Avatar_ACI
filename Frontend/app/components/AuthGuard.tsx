@@ -16,6 +16,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [router]);
 
-  if (!verificado) return null;
+  if (!verificado) return (
+    <div className="h-screen flex items-center justify-center bg-background">
+      <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+    </div>
+  );
+
   return <>{children}</>;
 }
