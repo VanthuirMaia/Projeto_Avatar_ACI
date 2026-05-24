@@ -1,10 +1,12 @@
 import torch
 import torch.nn.functional as F
+from pathlib import Path
 from model import LSTMClassifier, IntentClassifier  # import dos dois
 from utils2 import tokenize, encode_sentence
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-checkpoint = torch.load('../data/model.pth', map_location=device)
+_MODEL_PATH = Path(__file__).parent.parent / "data" / "model.pth"
+checkpoint = torch.load(str(_MODEL_PATH), map_location=device)
 word2idx = checkpoint['word2idx']
 tag2idx = checkpoint['tag2idx']
 idx2tag = {v: k for k, v in tag2idx.items()}
