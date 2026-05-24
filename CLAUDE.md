@@ -28,7 +28,8 @@ Projeto_ACI/
 │   │   ├── intents.json  # base de conhecimento TEA/inclusão (10 intents)
 │   │   ├── intents_pc.json  # backup do intents anterior (pensamento computacional)
 │   │   ├── model.pth     # modelo NLU treinado (attention, 75% acc)
-│   │   └── rag_store/    # embeddings.npy + chunks.json (gerado pelo ingest.py)
+│   │   └── rag_store/    # embeddings.npy + chunks.json (gerado pelo ingest.py) — gitignored
+│   ├── Dockerfile        # python:3.11-slim, WORKDIR /app, CMD python src/apiv2.py
 │   └── requirements.txt
 │
 ├── Frontend/             # Next.js app
@@ -44,8 +45,12 @@ Projeto_ACI/
 │   │   ├── mock/data.ts       # dados mockados de alunos, atividades, PEIs
 │   │   └── utils/api.ts       # chamadas ao backend (buscarRespostaChat, adaptarAtividade, sugerirPEI)
 │   ├── .env.local             # NEXT_PUBLIC_BACKEND_URL=http://localhost:5022
+│   ├── next.config.ts         # output: 'standalone' (obrigatório para Docker)
+│   ├── Dockerfile             # multistage Node 20-alpine, standalone build
 │   └── package.json
 │
+├── docker-compose.prod.yml   # orquestração produção (Traefik + gestto_gestto-network)
+├── deploy.sh                 # script de deploy: git pull + docker compose up --build
 ├── docs_RAG_TEA/         # 18 PDFs de literatura especializada sobre TEA/inclusão
 ├── videos/               # assets do avatar (aguardando.mp4, pensando.mp4, comunicando.mp4)
 └── index.html            # protótipo inicial do avatar (legado, não usar)
@@ -184,10 +189,15 @@ Testa todas as vozes e retorna quais são acessíveis no plano atual (`accessibl
 - Fallback para Web Speech API (`pt-BR`) quando `audio_base64` é null
 - `Backend/start.ps1` — startup script que carrega `.env` e limpa variáveis residuais de sessões anteriores
 
-### 🔲 Fase 5 — Deploy VPS (próximo)
-- Docker Compose: backend + frontend em containers separados
-- Nginx reverse proxy + Let's Encrypt HTTPS
-- Variáveis de ambiente via `.env` no servidor (não commitar chaves)
+### 🔄 Fase 5 — Deploy VPS (em andamento)
+- URL de produção: **https://avatartea.axiodev.cloud**
+- VPS: `serveraxio` — Traefik v3.4 já rodando no container `gestto_traefik`
+- Rede Docker: `gestto_gestto-network` (externa, compartilhada com outros serviços do servidor)
+- Arquivos criados: `Backend/Dockerfile`, `Frontend/Dockerfile`, `docker-compose.prod.yml`, `deploy.sh`
+- `next.config.ts`: `output: 'standalone'` adicionado (obrigatório para o build Docker do Next.js)
+- `nlu.py`: caminho do modelo corrigido para `Path(__file__).parent.parent / "data" / "model.pth"` (era `'../data/model.pth'` relativo ao cwd — quebrava no Docker)
+- **Pendente**: DNS — criar registro `A` para `avatartea.axiodev.cloud` apontando para o IP da VPS
+- **Pendente**: copiar `Backend/.env`, `Backend/data/rag_store/` e `videos/` para a VPS via `scp` (não estão no git)
 
 ## Como rodar o sistema completo
 
@@ -243,11 +253,39 @@ PORT=5022
 - `api.py` (raiz do Backend/src) é a versão v1, não usar
 - ElevenLabs free plan: vozes da Voice Library bloqueadas via API (HTTP 402) — usar apenas vozes "premade" acessíveis (verificar com `GET /voices/test`)
 - O system prompt do GPT instrui explicitamente a responder em PT-BR, sem raciocínio interno, e sem citar níveis de TEA
+- `nlu.py` usa `Path(__file__).parent.parent / "data" / "model.pth"` — caminhos relativos ao cwd quebram no Docker
+- `apiv2.py` usa `Path(__file__).parent` para todos os paths (`_DATA`, `_DOCS`) — padrão correto a seguir
 
-## Próximo passo — Fase 5: Deploy VPS
+## Deploy — Docker (Fase 5)
 
-Planejado para a próxima sessão. Pontos a definir com o usuário:
-- SO e acesso à VPS (IP, usuário SSH)
-- Domínio disponível para HTTPS (Let's Encrypt)
-- Estratégia para as chaves de API no servidor (`.env` remoto, secrets manager, etc.)
-- Repositório git: público ou privado? (`.env` nunca entra no repo)
+### Infra
+- Traefik v3.4 já roda na VPS no container `gestto_traefik`, rede `gestto_gestto-network`
+- Backend exposto via `/api` (stripprefix remove o prefixo antes de chegar no Flask)
+- Frontend recebe `NEXT_PUBLIC_BACKEND_URL=https://avatartea.axiodev.cloud/api` como build arg
+
+### Rodar deploy na VPS
+```bash
+cd /var/www/avatartea
+./deploy.sh   # git pull + docker compose up -d --build + health check
+```
+
+### Assets que não estão no git (copiar via scp da máquina local)
+```bash
+# Rodar da máquina LOCAL, substituindo VPS_IP e USER
+scp Backend/.env USER@VPS_IP:/var/www/avatartea/Backend/.env
+scp -r Backend/data/rag_store USER@VPS_IP:/var/www/avatartea/Backend/data/
+scp videos/pensando.mp4 USER@VPS_IP:/var/www/avatartea/videos/pensando.mp4
+```
+
+### Volumes mapeados no docker-compose.prod.yml
+| Volume host | Container | Modo |
+|---|---|---|
+| `./Backend/data/rag_store` | `/app/data/rag_store` | `:ro` |
+| `./docs_RAG_TEA` | `/app/docs_RAG_TEA` | `:ro` |
+| `./videos` | `/app/videos` | `:ro` |
+
+## Próximos passos
+
+1. **DNS** — criar registro `A`: `avatartea` → IP da VPS no painel do domínio `axiodev.cloud`
+2. **Verificar healthcheck** — após DNS, confirmar que `https://avatartea.axiodev.cloud/api/health` retorna `{"status": "ok"}`
+3. **GitHub Actions (opcional)** — workflow de SSH deploy para auto-deploy a cada push na `main` (estrutura discutida, não implementada ainda)
