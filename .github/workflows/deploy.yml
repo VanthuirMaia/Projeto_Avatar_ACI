@@ -1,0 +1,26 @@
+name: Deploy AvaTEA
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy na VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Conectar na VPS e fazer deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 72.61.56.252
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/avatartea
+            git pull origin main
+            docker compose -f docker-compose.prod.yml up -d --build
+            echo "==> Health check (aguardando 15s)..."
+            sleep 15
+            curl -sf https://avatartea.axiodev.cloud/api/health || echo "WARN: health check falhou"
