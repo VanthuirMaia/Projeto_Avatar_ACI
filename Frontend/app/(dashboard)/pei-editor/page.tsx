@@ -80,8 +80,12 @@ export default function PEIEditorPage() {
 
     sugerirPEI(alunoAtual)
       .then(setSugestoes)
-      .catch(() =>
-        setErroSugestoes("Não foi possível carregar sugestões. Verifique o backend.")
+      .catch((err: unknown) =>
+        setErroSugestoes(
+          err instanceof Error && err.name === "AbortError"
+            ? "As sugestões estão demorando. Tente novamente."
+            : "Não foi possível carregar sugestões. Verifique sua conexão."
+        )
       )
       .finally(() => setCarregandoSugestoes(false));
   }, [alunoAtual?.id]);

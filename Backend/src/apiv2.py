@@ -5,12 +5,28 @@ import uuid
 import hashlib
 import base64
 import logging
+import time
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 import requests as http_requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+
+_SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+if _SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=_SENTRY_DSN,
+        integrations=[FlaskIntegration()],
+        traces_sample_rate=0.2,   # 20% das requests trackeadas (custo controlado)
+        send_default_pii=False,   # LGPD: sem dados pessoais
+        environment=os.getenv("ENVIRONMENT", "production"),
+    )
+
+from metrics import log_event, get_stats, rotate_if_needed
 
 try:
     import jwt as _pyjwt
@@ -166,17 +182,64 @@ def _rag_context(query: str, n: int = 3) -> str:
 
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "openai/gpt-4.1-mini")
 
-def _openai_chat(system: str, user: str, max_tokens: int = 1000, json_mode: bool = False) -> str:
+def _openai_chat(system: str, user: str, max_tokens: int = 1000, json_mode: bool = False,
+                 temperature: float = 0.7, timeout: float = 35.0) -> str:
     kwargs = dict(
         model=OPENAI_MODEL,
         messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
         max_tokens=max_tokens,
-        temperature=0.7,
+        temperature=temperature,
+        timeout=timeout,
     )
     if json_mode:
         kwargs["response_format"] = {"type": "json_object"}
     resp = openai_client.chat.completions.create(**kwargs)
     return resp.choices[0].message.content.strip()
+
+
+# ── Guardrails ─────────────────────────────────────────────────────────────────
+_GUARDRAIL_SYSTEM = (
+    "Você é um classificador de tópicos para o sistema AvaTEA. "
+    "Responda SOMENTE 'SIM' ou 'NAO' (sem pontuação, sem explicação). "
+    "Responda 'SIM' se a mensagem tratar de QUALQUER um destes temas: "
+    "TEA, autismo, TDAH, dislexia, altas habilidades, superdotação, "
+    "deficiência intelectual, síndrome de Down, inclusão escolar, educação especial, "
+    "AEE (Atendimento Educacional Especializado), PEI (Plano Educacional Individualizado), "
+    "adaptação de atividades pedagógicas, comunicação alternativa e aumentativa (CAA), "
+    "estratégias inclusivas em sala de aula, legislação educacional brasileira (LBI, BNCC, MEC), "
+    "necessidades educacionais especiais, NEE, transtorno de aprendizagem, "
+    "comportamento em sala de aula, manejo de turma inclusiva. "
+    "Responda 'NAO' para qualquer outro assunto."
+)
+
+_RECUSA_OFFTOPIC = (
+    "Olá! Sou a Lorna, especialista em educação inclusiva e TEA. "
+    "Parece que sua pergunta está fora do meu foco de atuação. "
+    "Posso ajudar com adaptações pedagógicas, elaboração de PEI, estratégias "
+    "para alunos com TEA, TDAH, dislexia ou outras necessidades educacionais especiais. "
+    "Tem alguma dúvida sobre esses temas? Estou aqui para ajudar!"
+)
+
+def _guardrail_check(topic: str) -> bool:
+    """Retorna True se o tópico está no escopo. Fail-open: permite em caso de erro."""
+    if not use_openai:
+        return True
+    try:
+        resp = openai_client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": _GUARDRAIL_SYSTEM},
+                {"role": "user",   "content": topic[:600]},
+            ],
+            max_tokens=5,
+            temperature=0,
+            timeout=10.0,
+        )
+        answer = resp.choices[0].message.content.strip().upper()
+        return answer.startswith("SIM")
+    except Exception:
+        logger.warning("Guardrail check falhou — permitindo request (fail-open).")
+        return True
 
 
 def _gemini_call(prompt: str) -> str:
@@ -191,7 +254,7 @@ def _gemini_call(prompt: str) -> str:
 def gerar_resposta(topic: str, age_group: str, aluno_context: dict | None = None) -> tuple[dict, int]:
     tag1, prob1, tag2, prob2 = processar_texto(topic)
 
-    # Tenta buscar resposta base no intents.json quando NLU tem boa confiança
+    # NLU: busca resposta base quando há boa confiança (complemento, não gate)
     resposta_base = None
     if tag1 and prob1 >= 0.49 and (prob1 - prob2) >= 0.15:
         for intent in intents["intents"]:
@@ -201,10 +264,23 @@ def gerar_resposta(topic: str, age_group: str, aluno_context: dict | None = None
                     break
                 break
 
-    conteudo_final = ""
-    falado = ""  # versão curta para TTS
+    # ── Guardrail LLM ────────────────────────────────────────────────────────
+    # Chamada leve (max_tokens=5, temp=0, timeout=10s) antes da geração principal.
+    # Falha aberta: se a chamada de classificação errar, deixa o request prosseguir.
+    if not _guardrail_check(topic):
+        audio_b64 = _elevenlabs_tts(_expand_acronyms_for_tts(_RECUSA_OFFTOPIC))
+        return {
+            "content": _RECUSA_OFFTOPIC,
+            "tag": None,
+            "confidence": 0.0,
+            "audio_base64": audio_b64,
+            "offtopic": True,
+        }, 200
 
-    # RAG + OpenAI — sempre que disponível (NLU é apenas complemento)
+    conteudo_final = ""
+    falado = ""
+
+    # ── RAG + OpenAI ─────────────────────────────────────────────────────────
     if use_openai:
         contexto = _rag_context(topic)
         sistema = (
@@ -214,16 +290,12 @@ def gerar_resposta(topic: str, age_group: str, aluno_context: dict | None = None
             "Seu trabalho está alinhado à BNCC, à LBI (Lei Brasileira de Inclusão, nº 13.146/2015) "
             "e à Política Nacional de Educação Especial na Perspectiva da Educação Inclusiva (MEC/2008). "
             "Responda SEMPRE em português brasileiro claro, direto e acessível para professores. "
-            "Não mostre raciocínio interno nem processo de pensamento — vá direto à resposta. "
-            "Use linguagem próxima da realidade escolar brasileira: "
-            "cite estratégias aplicáveis em turmas regulares, mencione recursos do AEE quando pertinente "
-            "e considere as limitações reais do professor (turmas grandes, poucos recursos). "
-            "Prefira exemplos concretos e práticos a definições teóricas. "
-            "Fundamente-se na literatura especializada fornecida no contexto quando disponível. "
-            "NUNCA mencione 'Nível 1', 'Nível 2', 'Nível 3' ou 'nível de suporte' de TEA — "
-            "fale sempre em termos das necessidades individuais do aluno. "
-            "Se a pergunta não estiver relacionada a educação, inclusão ou necessidades educacionais especiais, "
-            "informe gentilmente que seu foco é esse tema e ofereça ajuda dentro dessa área."
+            "Não mostre raciocínio interno — vá direto à resposta. "
+            "Use linguagem próxima da realidade escolar brasileira: estratégias aplicáveis em turmas "
+            "regulares, recursos do AEE quando pertinente, limitações reais do professor. "
+            "Prefira exemplos concretos a definições teóricas. "
+            "Fundamente-se na literatura especializada quando disponível. "
+            "NUNCA mencione 'Nível 1', 'Nível 2', 'Nível 3' ou 'nível de suporte' de TEA."
         )
 
         aluno_section = ""
@@ -290,14 +362,31 @@ def search():
     data = request.get_json(force=True)
     topic = data.get("topic", "").strip()
     age_group = data.get("age_group", "acima de 15 anos")
-    aluno_context = data.get("aluno_context")  # optional student profile
+    aluno_context = data.get("aluno_context")
 
     if not topic:
         return jsonify({"error": "Tópico não fornecido"}), 400
+    if len(topic) > 1000:
+        return jsonify({"error": "Mensagem muito longa (máx. 1000 caracteres)."}), 400
 
-    # LGPD: não logar conteúdo da pergunta nem dados do aluno
     logger.info("/search — age_group=%s, com_aluno=%s", age_group, bool(aluno_context))
+    t0 = time.perf_counter()
     result, status = gerar_resposta(topic, age_group, aluno_context)
+    rt_ms = int((time.perf_counter() - t0) * 1000)
+
+    log_event(
+        "/search",
+        rt_ms,
+        intent_tag=result.get("tag"),
+        confidence=result.get("confidence"),
+        offtopic=result.get("offtopic", False),
+        openai_ok=use_openai,
+        elevenlabs_ok=result.get("audio_base64") is not None,
+        age_group=age_group,
+        has_student_context=bool(aluno_context),
+    )
+    rotate_if_needed()
+    result.pop("offtopic", None)  # campo interno, não enviar ao frontend
     return jsonify(result), status
 
 
@@ -313,6 +402,8 @@ def adapt_activity():
 
     if not texto_original:
         return jsonify({"error": "Texto original não fornecido"}), 400
+    if len(texto_original) > 5000:
+        return jsonify({"error": "Texto muito longo (máx. 5000 caracteres)."}), 400
     if not use_openai:
         return jsonify({"error": "OpenAI não configurado. Defina OPENAI_API_KEY."}), 503
 
@@ -341,10 +432,13 @@ def adapt_activity():
         "Retorne APENAS o texto adaptado, sem explicações adicionais."
     )
 
+    t0 = time.perf_counter()
     try:
         texto_adaptado = _openai_chat(sistema, usuario, max_tokens=1000)
+        log_event("/adapt", int((time.perf_counter() - t0) * 1000), openai_ok=True)
         return jsonify({"texto_adaptado": texto_adaptado}), 200
     except Exception as e:
+        log_event("/adapt", int((time.perf_counter() - t0) * 1000), openai_ok=False, error_type=type(e).__name__)
         logger.exception("Erro OpenAI em /adapt")
         return jsonify({"error": str(e)}), 500
 
@@ -359,6 +453,8 @@ def suggest_pei():
 
     if not diagnostico:
         return jsonify({"error": "Diagnóstico não fornecido"}), 400
+    if len(diagnostico) > 300 or len(observacoes) > 2000:
+        return jsonify({"error": "Campos excedem o tamanho máximo permitido."}), 400
     if not use_openai:
         return jsonify({"error": "OpenAI não configurado. Defina OPENAI_API_KEY."}), 503
 
@@ -385,11 +481,14 @@ def suggest_pei():
         "Cada lista deve ter entre 3 e 5 itens específicos e mensuráveis, em português."
     )
 
+    t0 = time.perf_counter()
     try:
         raw = _openai_chat(sistema, usuario, max_tokens=800, json_mode=True)
         sugestoes = json.loads(raw)
+        log_event("/suggest-pei", int((time.perf_counter() - t0) * 1000), openai_ok=True)
         return jsonify(sugestoes), 200
     except Exception as e:
+        log_event("/suggest-pei", int((time.perf_counter() - t0) * 1000), openai_ok=False, error_type=type(e).__name__)
         logger.exception("Erro OpenAI em /suggest-pei")
         return jsonify({"error": str(e)}), 500
 
@@ -456,6 +555,15 @@ def test_voices():
             pass
 
     return jsonify({"accessible": accessible, "blocked": blocked})
+
+
+# ── /admin/stats ───────────────────────────────────────────────────────────────
+@app.route("/admin/stats", methods=["GET"])
+def admin_stats():
+    if request.headers.get("X-Admin-Key") != _ADMIN_KEY:
+        return jsonify({"error": "Acesso negado."}), 403
+    days = min(int(request.args.get("days", 30)), 365)
+    return jsonify(get_stats(days)), 200
 
 
 # ── /health ────────────────────────────────────────────────────────────────────

@@ -10,3 +10,4 @@ pdfplumber
 numpy
 requests
 PyJWT
+sentry-sdk[flask]

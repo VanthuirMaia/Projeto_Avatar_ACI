@@ -63,7 +63,7 @@ export default function AssistantPage() {
   }, [mensagens]);
 
   useEffect(() => {
-    return () => { window.speechSynthesis?.cancel(); };
+    return () => { audioRef.current?.pause(); };
   }, []);
 
   // Sincroniza sessionIdRef com o contexto
@@ -76,26 +76,15 @@ export default function AssistantPage() {
     new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
   // ── Audio ──────────────────────────────────────────────────────────────────
-  const falarTexto = (texto: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      setAvatarEstado("aguardando");
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(texto);
-    utterance.lang = "pt-BR";
-    utterance.rate = 0.95;
-    utterance.onend = () => setAvatarEstado("aguardando");
-    window.speechSynthesis.speak(utterance);
-  };
-
+  // Sem fallback para Web Speech API: a voz padrão do sistema pode ser pt-PT
+  // ou variar entre browsers/dispositivos, quebrando a identidade da Lorna.
+  // Se ElevenLabs não retornar áudio, o avatar volta a aguardando silenciosamente.
   const toggleMudo = () => {
     const novo = !mutadoRef.current;
     mutadoRef.current = novo;
     setMutado(novo);
     if (novo) {
       audioRef.current?.pause();
-      window.speechSynthesis?.cancel();
       setAvatarEstado("aguardando");
     }
   };
@@ -106,7 +95,6 @@ export default function AssistantPage() {
     sessionIdRef.current = null;
     chatHistory.setActiveSessionId(null);
     audioRef.current?.pause();
-    window.speechSynthesis?.cancel();
     setAvatarEstado("aguardando");
   };
 
@@ -120,7 +108,6 @@ export default function AssistantPage() {
       : null;
     setAlunoSelecionado(aluno);
     audioRef.current?.pause();
-    window.speechSynthesis?.cancel();
     setAvatarEstado("aguardando");
   };
 
@@ -148,11 +135,15 @@ export default function AssistantPage() {
     setAvatarEstado("pensando");
 
     let resposta: RespostaChat;
+    const abortController = new AbortController();
     try {
-      resposta = await buscarRespostaChat(mensagemTexto, "geral", alunoSelecionado ?? undefined);
-    } catch {
+      resposta = await buscarRespostaChat(mensagemTexto, "geral", alunoSelecionado ?? undefined, abortController.signal);
+    } catch (err) {
+      const isTimeout = err instanceof Error && (err.name === "AbortError" || err.message.includes("abort"));
       resposta = {
-        content: "Não foi possível conectar ao servidor. Verifique se o backend está rodando na porta 5022.",
+        content: isTimeout
+          ? "A Lorna está demorando para responder. Tente novamente em instantes."
+          : "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.",
         audio_base64: null,
       };
     }
@@ -173,9 +164,11 @@ export default function AssistantPage() {
       const audio = new Audio(`data:audio/mpeg;base64,${resposta.audio_base64}`);
       audioRef.current = audio;
       audio.onended = () => setAvatarEstado("aguardando");
-      audio.play().catch(() => falarTexto(resposta.content));
+      audio.onerror = () => setAvatarEstado("aguardando");
+      audio.play().catch(() => setAvatarEstado("aguardando"));
     } else {
-      falarTexto(resposta.content);
+      // ElevenLabs indisponível: exibe texto, avatar retorna ao estado padrão
+      setAvatarEstado("aguardando");
     }
   };
 

@@ -129,8 +129,11 @@ export default function AdaptarAtividadePage() {
         textoAdaptado: adaptado,
       });
       setActiveId(id);
-    } catch {
-      setErro("Não foi possível adaptar a atividade. Verifique se o backend está rodando.");
+    } catch (err) {
+      const isTimeout = err instanceof Error && err.name === "AbortError";
+      setErro(isTimeout
+        ? "A adaptação está demorando mais que o esperado. Tente novamente."
+        : "Não foi possível adaptar a atividade. Verifique sua conexão.");
       setCurrentStep(2);
     } finally {
       setProcessando(false);

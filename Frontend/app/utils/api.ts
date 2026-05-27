@@ -3,6 +3,18 @@ import type { Aluno } from "../mock/data";
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5022";
 
+const REQUEST_TIMEOUT_MS = 45_000;
+
+function fetchComTimeout(url: string, options: RequestInit, signal?: AbortSignal): Promise<Response> {
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  // Propaga abort externo (ex: navegação do usuário)
+  signal?.addEventListener("abort", () => controller.abort());
+
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(tid));
+}
+
 export interface SugestoesPEI {
   objetivos: string[];
   estrategias: string[];
@@ -26,6 +38,7 @@ export async function buscarRespostaChat(
   topic: string,
   ageGroup = "geral",
   aluno?: Aluno,
+  signal?: AbortSignal,
 ): Promise<RespostaChat> {
   const body: Record<string, unknown> = {
     topic,
@@ -43,11 +56,11 @@ export async function buscarRespostaChat(
     };
   }
 
-  const res = await fetch(`${BACKEND_URL}/search`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/search`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
+    signal,
+  );
 
   if (!res.ok) throw new Error(`Erro ao chamar o backend: ${res.status}`);
   const data = await res.json();
@@ -57,36 +70,45 @@ export async function buscarRespostaChat(
 export async function adaptarAtividade(
   textoOriginal: string,
   aluno: Aluno,
+  signal?: AbortSignal,
 ): Promise<string> {
-  const res = await fetch(`${BACKEND_URL}/adapt`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      texto_original: textoOriginal,
-      diagnostico: aluno.diagnostico,
-      serie: aluno.serie,
-      observacoes: aluno.observacoes ?? "",
-      adaptacoes_preferidas: aluno.adaptacoesPreferidas ?? [],
-      age_group: idadeParaFaixaEtaria(aluno.idade),
-    }),
-  });
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/adapt`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        texto_original: textoOriginal,
+        diagnostico: aluno.diagnostico,
+        serie: aluno.serie,
+        observacoes: aluno.observacoes ?? "",
+        adaptacoes_preferidas: aluno.adaptacoesPreferidas ?? [],
+        age_group: idadeParaFaixaEtaria(aluno.idade),
+      }),
+    },
+    signal,
+  );
 
   if (!res.ok) throw new Error(`Erro ao adaptar atividade: ${res.status}`);
   const data = await res.json();
   return data.texto_adaptado as string;
 }
 
-export async function sugerirPEI(aluno: Aluno): Promise<SugestoesPEI> {
-  const res = await fetch(`${BACKEND_URL}/suggest-pei`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      diagnostico: aluno.diagnostico,
-      serie: aluno.serie,
-      observacoes: aluno.observacoes ?? "",
-      age_group: idadeParaFaixaEtaria(aluno.idade),
-    }),
-  });
+export async function sugerirPEI(aluno: Aluno, signal?: AbortSignal): Promise<SugestoesPEI> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/suggest-pei`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        diagnostico: aluno.diagnostico,
+        serie: aluno.serie,
+        observacoes: aluno.observacoes ?? "",
+        age_group: idadeParaFaixaEtaria(aluno.idade),
+      }),
+    },
+    signal,
+  );
 
   if (!res.ok) throw new Error(`Erro ao buscar sugestões de PEI: ${res.status}`);
   return res.json() as Promise<SugestoesPEI>;
