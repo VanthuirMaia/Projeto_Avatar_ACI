@@ -182,6 +182,79 @@ export async function carregarPEI(alunoId: string): Promise<PEIPayload | null> {
   return res.json() as Promise<PEIPayload>;
 }
 
+// ── Admin ──────────────────────────────────────────────────────────────────────
+export interface AdminStats {
+  periodo_dias: number;
+  total_requests: number;
+  aviso?: string;
+  por_endpoint?: { "/search": number; "/adapt": number; "/suggest-pei": number };
+  uso_pedagogico?: {
+    intents_mais_usados: { tag: string; count: number }[];
+    perguntas_com_aluno_ativo: number;
+    distribuicao_faixa_etaria: Record<string, number>;
+  };
+  qualidade_nlu?: {
+    confianca_media: number | null;
+    perguntas_fora_escopo: number;
+    taxa_offtopic_pct: number;
+  };
+  saude_sistema?: {
+    tempo_medio_resposta_ms: number;
+    tempo_maximo_resposta_ms: number;
+    erros_openai: number;
+    erros_elevenlabs: number;
+    tipos_de_erro: Record<string, number>;
+  };
+  adocao?: {
+    usuarios_unicos_hash: number;
+    perguntas_por_dia: Record<string, number>;
+  };
+}
+
+export interface AdminUser {
+  id: string;
+  nome: string;
+  email: string;
+  status: "aprovado" | "pendente" | "bloqueado";
+  role: "professor" | "coordenador";
+  criado_em: string;
+}
+
+function adminHeaders(key: string): Record<string, string> {
+  return { "Content-Type": "application/json", "X-Admin-Key": key };
+}
+
+export async function buscarAdminStats(adminKey: string, days = 30): Promise<AdminStats> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/admin/stats?days=${days}`,
+    { method: "GET", headers: adminHeaders(adminKey) },
+  );
+  if (!res.ok) throw new Error(`Erro ao buscar stats: ${res.status}`);
+  return res.json() as Promise<AdminStats>;
+}
+
+export async function listarAdminUsuarios(adminKey: string): Promise<AdminUser[]> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/auth/admin/users`,
+    { method: "GET", headers: adminHeaders(adminKey) },
+  );
+  if (!res.ok) throw new Error(`Erro ao listar usuários: ${res.status}`);
+  const data = await res.json();
+  return data.users as AdminUser[];
+}
+
+export async function atualizarStatusUsuario(
+  adminKey: string,
+  userId: string,
+  status: "aprovado" | "bloqueado",
+): Promise<void> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/auth/admin/users/${userId}`,
+    { method: "PATCH", headers: adminHeaders(adminKey), body: JSON.stringify({ status }) },
+  );
+  if (!res.ok) throw new Error(`Erro ao atualizar usuário: ${res.status}`);
+}
+
 export async function sugerirPEI(aluno: Aluno, signal?: AbortSignal): Promise<SugestoesPEI> {
   const res = await fetchComTimeout(
     `${BACKEND_URL}/suggest-pei`,
