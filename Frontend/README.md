@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AvaTEA — Frontend
 
-## Getting Started
+Interface Next.js do sistema AvaTEA: assistente pedagógico com avatar animado para professores do AEE.
 
-First, run the development server:
+## Stack
+
+| Componente | Tecnologia |
+|---|---|
+| Framework | Next.js 16 + React 19 (App Router) |
+| Estilo | Tailwind CSS v3 |
+| Animações | Framer Motion |
+| Formulários | react-hook-form + zod |
+| Markdown | react-markdown + remark-gfm |
+| Monitoramento | @sentry/nextjs |
+| Auth | JWT em localStorage + `AuthGuard` com validação de expiração |
+
+## Rodar localmente
 
 ```bash
+cd Frontend
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# → http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Variáveis de ambiente — `Frontend/.env.local`:**
+```env
+NEXT_PUBLIC_BACKEND_URL=http://localhost:5022
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Sentry — deixar vazio para desabilitar (ex: desenvolvimento)
+SENTRY_DSN=
+NEXT_PUBLIC_SENTRY_DSN=
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Páginas
 
-## Learn More
+| Rota | Descrição |
+|---|---|
+| `/login` | Autenticação real via `POST /auth/login` |
+| `/register` | Cadastro — status `pendente` até aprovação pelo admin |
+| `/dashboard` | Visão geral |
+| `/assistant` | Chat com a Lorna + Avatar animado + histórico de sessões |
+| `/activity-adaptation` | Adaptação de atividades pedagógicas |
+| `/pei-editor` | Editor de PEI com sugestões IA |
+| `/students` | Gestão de alunos |
+| `/students/[id]` | Perfil individual do aluno |
 
-To learn more about Next.js, take a look at the following resources:
+## Avatar (Lorna)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`app/components/AvatarPlayer.tsx` — moldura circular com gradiente, crossfade entre vídeos.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Estados:** `aguardando` → `pensando` (fetch) → `comunicando` (áudio) → `aguardando`
+- **Áudio:** ElevenLabs MP3 base64 decodificado no browser via `new Audio()`
+- **Sem fallback Web Speech API** — se ElevenLabs falhar, avatar retorna silenciosamente a `aguardando`; professor lê a resposta no chat
 
-## Deploy on Vercel
+## Proteção de rotas
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+`AuthGuard.tsx` — envolve todas as rotas do grupo `(dashboard)`:
+- Verifica `avatartea_token` no `localStorage`
+- Decodifica o JWT e valida o campo `exp` — redireciona para `/login` se expirado
+- Remove token inválido automaticamente
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Chamadas ao backend (`app/utils/api.ts`)
+
+Todas as funções usam `fetchComTimeout` com **timeout de 45s** e suporte a `AbortSignal`.
+
+| Função | Endpoint |
+|---|---|
+| `buscarRespostaChat()` | `POST /search` |
+| `adaptarAtividade()` | `POST /adapt` |
+| `sugerirPEI()` | `POST /suggest-pei` |
+
+## Monitoramento (Sentry)
+
+Configurado em `instrumentation.ts` (server) e `instrumentation-client.ts` (browser).
+Ativo apenas quando `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` estão definidos.
+Erros de autoplay e aborto de fetch são ignorados (não são bugs do app).
+
+## Build Docker
+
+```bash
+# A partir da raiz do projeto
+docker compose -f docker-compose.prod.yml up --build
+```
+
+O `next.config.ts` usa `output: 'standalone'` — obrigatório para o build multistage.
