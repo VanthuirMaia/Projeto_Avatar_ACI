@@ -54,7 +54,9 @@ _DATA = _SRC.parent / "data"
 _DOCS = _SRC.parent.parent / "docs_RAG_TEA"
 
 # ── Auth config ────────────────────────────────────────────────────────────────
-_USERS_FILE = _DATA / "users.json"
+_USERS_FILE  = _DATA / "users.json"
+_PEIS_FILE   = _DATA / "peis.json"
+_ALUNOS_FILE = _DATA / "alunos.json"
 _JWT_SECRET = os.getenv("JWT_SECRET", "avatartea_secret_2025")
 _ADMIN_KEY  = os.getenv("ADMIN_KEY",  "avatartea_admin_2025")
 _SALT       = "avatartea2025"
@@ -591,6 +593,48 @@ def _save_users(data: dict):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def _load_peis() -> dict:
+    if not _PEIS_FILE.exists():
+        return {"peis": []}
+    with open(_PEIS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _save_peis(data: dict):
+    with open(_PEIS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _load_alunos() -> dict:
+    if not _ALUNOS_FILE.exists():
+        return {"alunos": []}
+    with open(_ALUNOS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _save_alunos(data: dict):
+    with open(_ALUNOS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _require_jwt() -> dict | None:
+    """Extrai e valida o JWT. Retorna {'id': str, 'role': str, 'nome': str} ou None."""
+    if not _HAS_JWT:
+        return None
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return None
+    try:
+        payload = _pyjwt.decode(auth[7:], _JWT_SECRET, algorithms=["HS256"])
+        return {
+            "id":   payload.get("sub"),
+            "role": payload.get("role", "professor"),
+            "nome": payload.get("nome", ""),
+        }
+    except Exception:
+        return None
+
+
 def _hash_senha(email: str, senha: str) -> str:
     raw = f"{email}{senha}{_SALT}"
     return hashlib.sha256(raw.encode()).hexdigest()
@@ -598,9 +642,10 @@ def _hash_senha(email: str, senha: str) -> str:
 
 def _gerar_token(user: dict) -> str:
     payload = {
-        "sub": user["id"],
+        "sub":  user["id"],
         "nome": user["nome"],
-        "exp": datetime.now(timezone.utc) + timedelta(hours=8),
+        "role": user.get("role", "professor"),
+        "exp":  datetime.now(timezone.utc) + timedelta(hours=8),
     }
     return _pyjwt.encode(payload, _JWT_SECRET, algorithm="HS256")
 
@@ -626,6 +671,19 @@ def auth_register():
         "email":      email,
         "senha_hash": _hash_senha(email, senha),
         "status":     "pendente",
+        "criado_em":  datetime.now(timezone.utc).isoformat(),
+    }
+    role = data.get("role", "professor").strip()
+    if role not in ("professor", "coordenador"):
+        role = "professor"
+
+    user = {
+        "id":         str(uuid.uuid4()),
+        "nome":       nome,
+        "email":      email,
+        "senha_hash": _hash_senha(email, senha),
+        "status":     "pendente",
+        "role":       role,
         "criado_em":  datetime.now(timezone.utc).isoformat(),
     }
     db["users"].append(user)
@@ -658,7 +716,7 @@ def auth_login():
         return jsonify({"error": "Conta bloqueada. Entre em contato com o administrador."}), 403
 
     token = _gerar_token(user)
-    return jsonify({"token": token, "nome": user["nome"]}), 200
+    return jsonify({"token": token, "nome": user["nome"], "role": user.get("role", "professor")}), 200
 
 
 # ── GET /auth/admin/users ──────────────────────────────────────────────────────
@@ -690,6 +748,203 @@ def admin_update_user(user_id: str):
             return jsonify({"message": f"Status atualizado para {novo_status}."}), 200
 
     return jsonify({"error": "Usuário não encontrado."}), 404
+
+
+# ── GET /pei ──────────────────────────────────────────────────────────────────
+@app.route("/pei", methods=["GET"])
+def list_peis():
+    jwt = _require_jwt()
+    if not jwt:
+        return jsonify({"error": "Autenticação necessária."}), 401
+
+    peis = _load_peis()
+    if jwt["role"] == "coordenador":
+        result = peis["peis"]
+    else:
+        result = [p for p in peis["peis"] if p["professor_id"] == jwt["id"]]
+
+    return jsonify(result), 200
+
+
+# ── GET /alunos ────────────────────────────────────────────────────────────────
+@app.route("/alunos", methods=["GET"])
+def list_alunos():
+    jwt = _require_jwt()
+    if not jwt:
+        return jsonify({"error": "Autenticação necessária."}), 401
+
+    db = _load_alunos()
+    if jwt["role"] == "coordenador":
+        alunos = db["alunos"]
+    else:
+        alunos = [a for a in db["alunos"] if a.get("professor_id") == jwt["id"]]
+
+    return jsonify({"alunos": alunos}), 200
+
+
+# ── POST /alunos ───────────────────────────────────────────────────────────────
+@app.route("/alunos", methods=["POST"])
+def create_aluno():
+    jwt = _require_jwt()
+    if not jwt:
+        return jsonify({"error": "Autenticação necessária."}), 401
+
+    data = request.get_json(force=True) or {}
+    nome = data.get("nome", "").strip()
+    if not nome:
+        return jsonify({"error": "Nome é obrigatório."}), 400
+
+    now = datetime.now(timezone.utc).isoformat()
+    aluno = {
+        "id":                    data.get("id") or str(uuid.uuid4()),
+        "professor_id":          jwt["id"],
+        "professor_nome":        jwt["nome"],
+        "nome":                  nome,
+        "diagnostico":           data.get("diagnostico", "").strip(),
+        "cid":                   data.get("cid", "").strip(),
+        "serie":                 data.get("serie", "").strip(),
+        "idade":                 int(data.get("idade", 0)),
+        "observacoes":           data.get("observacoes", "").strip(),
+        "adaptacoesPreferidas":  data.get("adaptacoesPreferidas", []),
+        "criado_em":             now,
+        "atualizado_em":         now,
+    }
+
+    db = _load_alunos()
+    db["alunos"].append(aluno)
+    _save_alunos(db)
+    return jsonify(aluno), 201
+
+
+# ── PATCH /alunos/<id> ─────────────────────────────────────────────────────────
+@app.route("/alunos/<aluno_id>", methods=["PATCH"])
+def update_aluno(aluno_id: str):
+    jwt = _require_jwt()
+    if not jwt:
+        return jsonify({"error": "Autenticação necessária."}), 401
+
+    db = _load_alunos()
+    aluno = next((a for a in db["alunos"] if a["id"] == aluno_id), None)
+    if not aluno:
+        return jsonify({"error": "Aluno não encontrado."}), 404
+    if jwt["role"] != "coordenador" and aluno.get("professor_id") != jwt["id"]:
+        return jsonify({"error": "Acesso negado."}), 403
+
+    data = request.get_json(force=True) or {}
+    fields = ("nome", "diagnostico", "cid", "serie", "idade", "observacoes", "adaptacoesPreferidas")
+    for f in fields:
+        if f in data:
+            aluno[f] = data[f]
+    aluno["atualizado_em"] = datetime.now(timezone.utc).isoformat()
+
+    _save_alunos(db)
+    return jsonify(aluno), 200
+
+
+# ── DELETE /alunos/<id> ────────────────────────────────────────────────────────
+@app.route("/alunos/<aluno_id>", methods=["DELETE"])
+def delete_aluno(aluno_id: str):
+    jwt = _require_jwt()
+    if not jwt:
+        return jsonify({"error": "Autenticação necessária."}), 401
+
+    db = _load_alunos()
+    aluno = next((a for a in db["alunos"] if a["id"] == aluno_id), None)
+    if not aluno:
+        return jsonify({"error": "Aluno não encontrado."}), 404
+    if jwt["role"] != "coordenador" and aluno.get("professor_id") != jwt["id"]:
+        return jsonify({"error": "Acesso negado."}), 403
+
+    db["alunos"] = [a for a in db["alunos"] if a["id"] != aluno_id]
+    _save_alunos(db)
+    return jsonify({"message": "Aluno removido."}), 200
+
+
+# ── POST /pei ──────────────────────────────────────────────────────────────────
+@app.route("/pei", methods=["POST"])
+def save_pei():
+    jwt = _require_jwt()
+    if not jwt:
+        return jsonify({"error": "Autenticação necessária."}), 401
+    professor_id = jwt["id"]
+
+    data = request.get_json(force=True) or {}
+    aluno_id = data.get("aluno_id", "").strip()
+    if not aluno_id:
+        return jsonify({"error": "aluno_id é obrigatório."}), 400
+
+    peis = _load_peis()
+    now  = datetime.now(timezone.utc).isoformat()
+
+    existing = next(
+        (p for p in peis["peis"] if p["professor_id"] == professor_id and p["aluno_id"] == aluno_id),
+        None,
+    )
+
+    entry = {
+        "professor_id": professor_id,
+        "aluno_id":     aluno_id,
+        "objetivos":    [v for v in data.get("objetivos",   []) if v],
+        "estrategias":  [v for v in data.get("estrategias", []) if v],
+        "recursos":     [v for v in data.get("recursos",    []) if v],
+        "avaliacoes":   [v for v in data.get("avaliacoes",  []) if v],
+        "updated_at":   now,
+    }
+
+    if existing:
+        existing.update(entry)
+    else:
+        entry["created_at"] = now
+        peis["peis"].append(entry)
+
+    _save_peis(peis)
+    return jsonify({"message": "PEI salvo com sucesso."}), 200
+
+
+# ── DELETE /pei/<aluno_id> ────────────────────────────────────────────────────
+@app.route("/pei/<aluno_id>", methods=["DELETE"])
+def delete_pei(aluno_id: str):
+    jwt = _require_jwt()
+    if not jwt:
+        return jsonify({"error": "Autenticação necessária."}), 401
+
+    peis = _load_peis()
+    antes = len(peis["peis"])
+    peis["peis"] = [
+        p for p in peis["peis"]
+        if not (p["professor_id"] == jwt["id"] and p["aluno_id"] == aluno_id)
+    ]
+    if len(peis["peis"]) == antes:
+        return jsonify({"error": "PEI não encontrado."}), 404
+
+    _save_peis(peis)
+    return jsonify({"message": "PEI removido."}), 200
+
+
+# ── GET /pei/<aluno_id> ────────────────────────────────────────────────────────
+@app.route("/pei/<aluno_id>", methods=["GET"])
+def get_pei(aluno_id: str):
+    jwt = _require_jwt()
+    if not jwt:
+        return jsonify({"error": "Autenticação necessária."}), 401
+    professor_id = jwt["id"]
+
+    peis = _load_peis()
+    pei  = next(
+        (p for p in peis["peis"] if p["professor_id"] == professor_id and p["aluno_id"] == aluno_id),
+        None,
+    )
+
+    if not pei:
+        return jsonify({"error": "PEI não encontrado."}), 404
+
+    return jsonify({
+        "objetivos":   pei.get("objetivos",   []),
+        "estrategias": pei.get("estrategias", []),
+        "recursos":    pei.get("recursos",    []),
+        "avaliacoes":  pei.get("avaliacoes",  []),
+        "updated_at":  pei.get("updated_at"),
+    }), 200
 
 
 if __name__ == "__main__":

@@ -38,3 +38,9 @@ desktop.ini
 # ── Logs ──────────────────────────────────────────────────────────────────────
 *.log
 npm-debug.log*
+
+# ── Dados persistentes (gerados em runtime, não versionar) ────────────────────
+Backend/data/users.json
+Backend/data/alunos.json
+Backend/data/peis.json
+Backend/data/metrics.jsonl

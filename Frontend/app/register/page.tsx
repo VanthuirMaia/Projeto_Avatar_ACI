@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
+  const [role, setRole] = useState<"professor" | "coordenador">("professor");
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -38,7 +39,7 @@ export default function RegisterPage() {
       const resp = await fetch(`${BACKEND_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: nome.trim(), email: email.trim().toLowerCase(), senha }),
+        body: JSON.stringify({ nome: nome.trim(), email: email.trim().toLowerCase(), senha, role }),
       });
       const json = await resp.json();
       if (!resp.ok) {
@@ -120,6 +121,33 @@ export default function RegisterPage() {
                   className="w-full px-4 py-3 bg-input-background rounded-lg border border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Perfil de acesso
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {(["professor", "coordenador"] as const).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setRole(r)}
+                      className={`px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                        role === r
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-border text-muted-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      {r === "professor" ? "Professor(a)" : "Coordenador(a)"}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  {role === "coordenador"
+                    ? "Coordenadores visualizam alunos de todos os professores."
+                    : "Professores gerenciam apenas seus próprios alunos."}
+                </p>
               </div>
 
               <div>

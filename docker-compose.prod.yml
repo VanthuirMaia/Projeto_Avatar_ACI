@@ -13,6 +13,8 @@ services:
     volumes:
       - ./Backend/data/rag_store:/app/data/rag_store:ro
       - ./Backend/data/users.json:/app/data/users.json
+      - ./Backend/data/peis.json:/app/data/peis.json
+      - ./Backend/data/alunos.json:/app/data/alunos.json
       - ./docs_RAG_TEA:/app/docs_RAG_TEA:ro
       - ./videos:/app/videos:ro
     healthcheck:

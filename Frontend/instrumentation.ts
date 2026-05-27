@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/nextjs";
+import * as Sentry from "@sentry/node";
 
 export function register() {
   const dsn = process.env.SENTRY_DSN;

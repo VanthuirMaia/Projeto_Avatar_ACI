@@ -36,6 +36,7 @@ export default function LoginPage() {
       }
       localStorage.setItem("avatartea_token", json.token);
       localStorage.setItem("avatartea_user", json.nome);
+      localStorage.setItem("avatartea_role", json.role ?? "professor");
       router.push("/dashboard");
     } catch {
       setErro("Não foi possível conectar ao servidor. Verifique se o backend está rodando.");

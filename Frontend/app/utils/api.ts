@@ -3,6 +3,13 @@ import type { Aluno } from "../mock/data";
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5022";
 
+function authHeaders(): Record<string, string> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("avatartea_token") : null;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
 const REQUEST_TIMEOUT_MS = 45_000;
 
 function fetchComTimeout(url: string, options: RequestInit, signal?: AbortSignal): Promise<Response> {
@@ -92,6 +99,87 @@ export async function adaptarAtividade(
   if (!res.ok) throw new Error(`Erro ao adaptar atividade: ${res.status}`);
   const data = await res.json();
   return data.texto_adaptado as string;
+}
+
+export interface PEIPayload {
+  aluno_id?:   string;
+  objetivos:   string[];
+  estrategias: string[];
+  recursos:    string[];
+  avaliacoes:  string[];
+  updated_at?: string;
+}
+
+// ── Alunos ────────────────────────────────────────────────────────────────────
+
+export async function listarAlunos(): Promise<Aluno[]> {
+  const res = await fetchComTimeout(`${BACKEND_URL}/alunos`, { method: "GET", headers: authHeaders() });
+  if (!res.ok) throw new Error(`Erro ao listar alunos: ${res.status}`);
+  const data = await res.json();
+  return data.alunos as Aluno[];
+}
+
+export async function criarAluno(dados: Omit<Aluno, "id"> & { id?: string }): Promise<Aluno> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/alunos`,
+    { method: "POST", headers: authHeaders(), body: JSON.stringify(dados) },
+  );
+  if (!res.ok) throw new Error(`Erro ao criar aluno: ${res.status}`);
+  return res.json() as Promise<Aluno>;
+}
+
+export async function editarAluno(id: string, dados: Partial<Omit<Aluno, "id">>): Promise<Aluno> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/alunos/${id}`,
+    { method: "PATCH", headers: authHeaders(), body: JSON.stringify(dados) },
+  );
+  if (!res.ok) throw new Error(`Erro ao editar aluno: ${res.status}`);
+  return res.json() as Promise<Aluno>;
+}
+
+export async function removerAluno(id: string): Promise<void> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/alunos/${id}`,
+    { method: "DELETE", headers: authHeaders() },
+  );
+  if (!res.ok) throw new Error(`Erro ao remover aluno: ${res.status}`);
+}
+
+// ── PEIs ──────────────────────────────────────────────────────────────────────
+export async function listarPEIs(): Promise<PEIPayload[]> {
+  const res = await fetchComTimeout(`${BACKEND_URL}/pei`, { method: "GET", headers: authHeaders() });
+  if (!res.ok) throw new Error(`Erro ao listar PEIs: ${res.status}`);
+  return res.json() as Promise<PEIPayload[]>;
+}
+
+export async function deletarPEI(alunoId: string): Promise<void> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/pei/${alunoId}`,
+    { method: "DELETE", headers: authHeaders() },
+  );
+  if (!res.ok) throw new Error(`Erro ao deletar PEI: ${res.status}`);
+}
+
+export async function salvarPEI(alunoId: string, data: Omit<PEIPayload, "updated_at">): Promise<void> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/pei`,
+    {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ aluno_id: alunoId, ...data }),
+    },
+  );
+  if (!res.ok) throw new Error(`Erro ao salvar PEI: ${res.status}`);
+}
+
+export async function carregarPEI(alunoId: string): Promise<PEIPayload | null> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/pei/${alunoId}`,
+    { method: "GET", headers: authHeaders() },
+  );
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Erro ao carregar PEI: ${res.status}`);
+  return res.json() as Promise<PEIPayload>;
 }
 
 export async function sugerirPEI(aluno: Aluno, signal?: AbortSignal): Promise<SugestoesPEI> {

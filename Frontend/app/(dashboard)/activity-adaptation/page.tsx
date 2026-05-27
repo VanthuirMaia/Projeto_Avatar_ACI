@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   Sparkles, Upload, User, CheckCircle2, ArrowRight, ArrowLeft,
   Copy, AlertCircle, FileText, Download, Printer, Check,
-  PanelLeftOpen, PanelLeftClose, Plus, Trash2,
+  Plus, Trash2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -70,7 +70,6 @@ export default function AdaptarAtividadePage() {
   const { alunos } = useAlunos();
   const history = useAdaptacoesHistory();
 
-  const [sidebarAberta, setSidebarAberta] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const [currentStep, setCurrentStep] = useState<Step>(1);
@@ -218,88 +217,16 @@ export default function AdaptarAtividadePage() {
   return (
     <div className="flex h-full bg-background">
 
-      {/* ── Sidebar de histórico ── */}
-      <aside
-        className={`
-          hidden lg:flex flex-col flex-shrink-0 bg-card border-r border-border
-          transition-[width] duration-200 overflow-hidden
-          ${sidebarAberta ? "w-60" : "w-0"}
-        `}
-      >
-        <div className="flex flex-col h-full min-w-60">
-          <div className="flex items-center justify-between px-3 pt-4 pb-2">
-            <span className="text-sm font-semibold text-foreground">Histórico</span>
-            <button
-              onClick={() => setSidebarAberta(false)}
-              title="Fechar histórico"
-              className="p-1 rounded hover:bg-accent text-muted-foreground"
-            >
-              <PanelLeftClose className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="px-3 pb-3">
-            <button
-              onClick={novaAdaptacao}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Nova adaptação
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-4">
-            {!history.hydrated && (
-              <p className="text-xs text-muted-foreground text-center py-4">Carregando…</p>
-            )}
-            {history.hydrated && grupos.length === 0 && (
-              <p className="text-xs text-muted-foreground text-center py-4">Nenhuma adaptação ainda</p>
-            )}
-            {grupos.map(grupo => (
-              <div key={grupo.label}>
-                <p className="text-xs text-muted-foreground font-medium px-2 pb-1">{grupo.label}</p>
-                <div className="space-y-0.5">
-                  {grupo.items.map(item => (
-                    <HistoryItem
-                      key={item.id}
-                      item={item}
-                      isActive={item.id === activeId}
-                      onSelect={() => carregarAdaptacao(item)}
-                      onDelete={() => {
-                        history.removerAdaptacao(item.id);
-                        if (item.id === activeId) novaAdaptacao();
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </aside>
-
       {/* ── Conteúdo principal ── */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto p-4 lg:p-8">
 
-          {/* Título + toggle */}
-          <div className="flex items-center gap-3 mb-6">
-            <button
-              onClick={() => setSidebarAberta(v => !v)}
-              title={sidebarAberta ? "Fechar histórico" : "Abrir histórico"}
-              className="hidden lg:flex p-2 rounded-lg hover:bg-accent text-muted-foreground"
-            >
-              {sidebarAberta
-                ? <PanelLeftClose className="w-4 h-4" />
-                : <PanelLeftOpen className="w-4 h-4" />
-              }
-            </button>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Adaptar Atividade</h1>
-              <p className="text-muted-foreground text-sm mt-0.5">
-                Cole o texto da atividade e receba uma versão adaptada em segundos
-              </p>
-            </div>
+          {/* Título */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-foreground">Adaptar Atividade</h1>
+            <p className="text-muted-foreground text-sm mt-0.5">
+              Cole o texto da atividade e receba uma versão adaptada em segundos
+            </p>
           </div>
 
           {/* Stepper */}
@@ -500,6 +427,50 @@ export default function AdaptarAtividadePage() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* ── Painel direito: Histórico ── */}
+      <aside className="hidden lg:flex flex-col w-72 bg-card border-l border-border flex-shrink-0 overflow-hidden">
+        <div className="flex items-center justify-between px-3 pt-4 pb-3">
+          <span className="text-sm font-semibold text-foreground">Histórico</span>
+          <button
+            onClick={novaAdaptacao}
+            title="Nova adaptação"
+            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Nova
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-4">
+          {!history.hydrated && (
+            <p className="text-xs text-muted-foreground text-center py-4">Carregando…</p>
+          )}
+          {history.hydrated && grupos.length === 0 && (
+            <p className="text-xs text-muted-foreground text-center py-4">Nenhuma adaptação ainda</p>
+          )}
+          {grupos.map(grupo => (
+            <div key={grupo.label}>
+              <p className="text-xs text-muted-foreground font-medium px-2 pb-1">{grupo.label}</p>
+              <div className="space-y-0.5">
+                {grupo.items.map(item => (
+                  <HistoryItem
+                    key={item.id}
+                    item={item}
+                    isActive={item.id === activeId}
+                    onSelect={() => carregarAdaptacao(item)}
+                    onDelete={() => {
+                      history.removerAdaptacao(item.id);
+                      if (item.id === activeId) novaAdaptacao();
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </aside>
+
     </div>
   );
 }

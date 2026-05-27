@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -11,6 +11,8 @@ import {
   MessageCircle,
   Menu,
   X,
+  LogOut,
+  ShieldCheck,
 } from "lucide-react";
 import { AlunosProvider } from "../context/AlunosContext";
 import { ChatHistoryProvider } from "../context/ChatHistoryContext";
@@ -31,7 +33,22 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [menuAberto, setMenuAberto] = useState(false);
+  const [nomeUsuario, setNomeUsuario] = useState("");
+  const [roleUsuario, setRoleUsuario] = useState("");
+
+  useEffect(() => {
+    setNomeUsuario(localStorage.getItem("avatartea_user") ?? "");
+    setRoleUsuario(localStorage.getItem("avatartea_role") ?? "professor");
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("avatartea_token");
+    localStorage.removeItem("avatartea_user");
+    localStorage.removeItem("avatartea_role");
+    router.replace("/login");
+  };
 
   return (
     <AuthGuard>
@@ -92,7 +109,29 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        <div className="mt-auto text-xs text-muted-foreground">© 2026 Lorna</div>
+        <div className="mt-auto space-y-3 pt-4 border-t border-border">
+          {nomeUsuario && (
+            <div className="px-2">
+              <p className="text-sm font-medium text-foreground truncate">{nomeUsuario}</p>
+              <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium mt-0.5 ${
+                roleUsuario === "coordenador"
+                  ? "bg-purple-100 text-purple-700"
+                  : "bg-primary/10 text-primary"
+              }`}>
+                <ShieldCheck className="w-3 h-3" />
+                {roleUsuario === "coordenador" ? "Coordenador(a)" : "Professor(a)"}
+              </span>
+            </div>
+          )}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Sair
+          </button>
+          <p className="text-xs text-muted-foreground px-2">© 2026 Lorna</p>
+        </div>
       </aside>
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import {
   Send, Sparkles, UserCircle2, ChevronDown,
-  PanelLeftOpen, PanelLeftClose, Plus, Trash2, MessageSquare,
+  Plus, Trash2, MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -51,8 +51,6 @@ export default function AssistantPage() {
   const [avatarEstado, setAvatarEstado] = useState<AvatarEstado>("aguardando");
   const [mutado, setMutado] = useState(false);
   const [alunoSelecionado, setAlunoSelecionado] = useState<Aluno | null>(alunoAtivo);
-  const [sidebarAberta, setSidebarAberta] = useState(true);
-
   const mutadoRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -182,89 +180,12 @@ export default function AssistantPage() {
   return (
     <div className="h-full flex flex-col lg:flex-row bg-background">
 
-      {/* ── Sidebar de histórico ── */}
-      <aside
-        className={`
-          hidden lg:flex flex-col flex-shrink-0 bg-card border-r border-border
-          transition-[width] duration-200 overflow-hidden
-          ${sidebarAberta ? "w-60" : "w-0"}
-        `}
-      >
-        <div className="flex flex-col h-full min-w-60">
-          {/* Header da sidebar */}
-          <div className="flex items-center justify-between px-3 pt-4 pb-2">
-            <span className="text-sm font-semibold text-foreground">Conversas</span>
-            <button
-              onClick={() => setSidebarAberta(false)}
-              title="Fechar histórico"
-              className="p-1 rounded hover:bg-accent text-muted-foreground"
-            >
-              <PanelLeftClose className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Novo chat */}
-          <div className="px-3 pb-3">
-            <button
-              onClick={novoChat}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Novo chat
-            </button>
-          </div>
-
-          {/* Lista de sessões */}
-          <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-4">
-            {!chatHistory.hydrated && (
-              <div className="text-xs text-muted-foreground px-2 py-4 text-center">Carregando…</div>
-            )}
-            {chatHistory.hydrated && grupos.length === 0 && (
-              <div className="text-xs text-muted-foreground px-2 py-4 text-center">
-                Nenhuma conversa ainda
-              </div>
-            )}
-            {grupos.map(grupo => (
-              <div key={grupo.label}>
-                <p className="text-xs text-muted-foreground font-medium px-2 pb-1">{grupo.label}</p>
-                <div className="space-y-0.5">
-                  {grupo.items.map(session => (
-                    <SessionItem
-                      key={session.id}
-                      session={session}
-                      isActive={session.id === chatHistory.activeSessionId}
-                      onSelect={() => carregarSessao(session)}
-                      onDelete={() => {
-                        chatHistory.removerSessao(session.id);
-                        if (session.id === sessionIdRef.current) novoChat();
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </aside>
-
       {/* ── Área de chat ── */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <div className="bg-card border-b border-border px-4 py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              {/* Toggle sidebar */}
-              <button
-                onClick={() => setSidebarAberta(v => !v)}
-                title={sidebarAberta ? "Fechar histórico" : "Abrir histórico"}
-                className="hidden lg:flex p-2 rounded-lg hover:bg-accent text-muted-foreground flex-shrink-0"
-              >
-                {sidebarAberta
-                  ? <PanelLeftClose className="w-4 h-4" />
-                  : <PanelLeftOpen className="w-4 h-4" />
-                }
-              </button>
-
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
@@ -445,15 +366,62 @@ export default function AssistantPage() {
         </div>
       </div>
 
-      {/* ── Sidebar do Avatar ── */}
-      <div className="hidden lg:flex lg:flex-col w-96 bg-card border-l border-border p-6 gap-4 overflow-y-auto">
-        <h3 className="font-semibold">Lorna</h3>
-        <div className="flex-1 flex flex-col justify-center">
+      {/* ── Painel direito: Avatar + Histórico ── */}
+      <div className="hidden lg:flex lg:flex-col w-80 bg-card border-l border-border flex-shrink-0 overflow-hidden">
+
+        {/* Avatar */}
+        <div className="flex-shrink-0 p-6 flex flex-col gap-4 border-b border-border">
+          <h3 className="font-semibold">Lorna</h3>
           <AvatarPlayer estado={avatarEstado} mutado={mutado} onToggleMudo={toggleMudo} />
+          <p className="text-sm text-muted-foreground text-center">
+            Especialista em educação inclusiva.
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground text-center">
-          Especialista em educação inclusiva.
-        </p>
+
+        {/* Histórico de conversas */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex items-center justify-between px-3 pt-4 pb-2">
+            <span className="text-sm font-semibold text-foreground">Conversas</span>
+            <button
+              onClick={novoChat}
+              title="Nova conversa"
+              className="p-1 rounded hover:bg-accent text-muted-foreground"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-4">
+            {!chatHistory.hydrated && (
+              <div className="text-xs text-muted-foreground px-2 py-4 text-center">Carregando…</div>
+            )}
+            {chatHistory.hydrated && grupos.length === 0 && (
+              <div className="text-xs text-muted-foreground px-2 py-4 text-center">
+                Nenhuma conversa ainda
+              </div>
+            )}
+            {grupos.map(grupo => (
+              <div key={grupo.label}>
+                <p className="text-xs text-muted-foreground font-medium px-2 pb-1">{grupo.label}</p>
+                <div className="space-y-0.5">
+                  {grupo.items.map(session => (
+                    <SessionItem
+                      key={session.id}
+                      session={session}
+                      isActive={session.id === chatHistory.activeSessionId}
+                      onSelect={() => carregarSessao(session)}
+                      onDelete={() => {
+                        chatHistory.removerSessao(session.id);
+                        if (session.id === sessionIdRef.current) novoChat();
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );

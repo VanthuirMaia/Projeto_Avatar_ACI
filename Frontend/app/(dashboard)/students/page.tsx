@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Search, FileText, Sparkles, TrendingUp, Pencil, Trash2, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAlunos } from "../../context/AlunosContext";
+import { useAdaptacoesHistory } from "../../context/AdaptacoesHistoryContext";
+import { listarPEIs } from "../../utils/api";
 import StudentFormModal from "../../components/StudentFormModal";
 import type { Aluno } from "../../mock/data";
 
@@ -22,10 +24,22 @@ function diagBadge(d: string) {
 export default function StudentsPage() {
   const router = useRouter();
   const { alunos, criar, editar, remover, setAlunoAtivo } = useAlunos();
+  const { adaptacoes } = useAdaptacoesHistory();
 
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editando, setEditando] = useState<Aluno | null>(null);
+  const [totalPEIs, setTotalPEIs] = useState<number | null>(null);
+
+  const agora = new Date();
+  const adaptacoesMes = adaptacoes.filter((a) => {
+    const d = new Date(a.createdAt);
+    return d.getMonth() === agora.getMonth() && d.getFullYear() === agora.getFullYear();
+  }).length;
+
+  useEffect(() => {
+    listarPEIs().then((lista) => setTotalPEIs(lista.length)).catch(() => setTotalPEIs(0));
+  }, []);
 
   const filtered = alunos.filter(
     (a) =>
@@ -33,19 +47,19 @@ export default function StudentsPage() {
       a.diagnostico.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSave = (dados: Omit<Aluno, "id">) => {
+  const handleSave = async (dados: Omit<Aluno, "id">) => {
     if (editando) {
-      editar(editando.id, dados);
+      await editar(editando.id, dados);
     } else {
-      criar(dados);
+      await criar(dados);
     }
     setModalOpen(false);
     setEditando(null);
   };
 
-  const handleDelete = (aluno: Aluno) => {
+  const handleDelete = async (aluno: Aluno) => {
     if (window.confirm(`Remover ${aluno.nome} permanentemente?`)) {
-      remover(aluno.id);
+      await remover(aluno.id);
     }
   };
 
@@ -100,12 +114,14 @@ export default function StudentsPage() {
 
         <div className="bg-card rounded-xl p-6 border border-border">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-muted-foreground">PEIs Ativos</span>
+            <span className="text-muted-foreground">PEIs Salvos</span>
             <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
               <FileText className="w-5 h-5 text-purple-600" />
             </div>
           </div>
-          <div className="text-3xl font-bold">8</div>
+          <div className="text-3xl font-bold">
+            {totalPEIs === null ? "…" : totalPEIs}
+          </div>
         </div>
 
         <div className="bg-card rounded-xl p-6 border border-border">
@@ -115,7 +131,7 @@ export default function StudentsPage() {
               <Sparkles className="w-5 h-5 text-secondary" />
             </div>
           </div>
-          <div className="text-3xl font-bold">42</div>
+          <div className="text-3xl font-bold">{adaptacoesMes}</div>
         </div>
       </div>
 
