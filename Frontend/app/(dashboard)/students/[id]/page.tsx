@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -18,7 +18,8 @@ import {
 import { motion } from "framer-motion";
 import { useAlunos } from "../../../context/AlunosContext";
 import StudentFormModal from "../../../components/StudentFormModal";
-import { mockAtividades, mockPEIs } from "../../../mock/data";
+import { carregarPEI, type PEIPayload } from "../../../utils/api";
+import { useAdaptacoesHistory } from "../../../context/AdaptacoesHistoryContext";
 import type { Aluno } from "../../../mock/data";
 
 export default function StudentDetailPage({
@@ -28,7 +29,16 @@ export default function StudentDetailPage({
 }) {
   const router = useRouter();
   const { alunos, editar, remover, setAlunoAtivo, hydrated } = useAlunos();
+  const { adaptacoes } = useAdaptacoesHistory();
   const [editOpen, setEditOpen] = useState(false);
+  const [peiAluno, setPeiAluno] = useState<PEIPayload | null>(null);
+
+  const aluno = alunos.find((a) => a.id === params.id);
+
+  useEffect(() => {
+    if (!aluno) return;
+    carregarPEI(aluno.id).then(setPeiAluno).catch(() => setPeiAluno(null));
+  }, [aluno?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!hydrated) {
     return (
@@ -43,8 +53,6 @@ export default function StudentDetailPage({
     );
   }
 
-  const aluno = alunos.find((a) => a.id === params.id);
-
   if (!aluno) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -56,8 +64,7 @@ export default function StudentDetailPage({
     );
   }
 
-  const atividadesAluno = mockAtividades.filter((a) => a.alunoId === aluno.id);
-  const peiAluno = mockPEIs.find((p) => p.alunoId === aluno.id);
+  const atividadesAluno = adaptacoes.filter((a) => a.alunoId === aluno.id);
 
   const handleEdit = (dados: Omit<Aluno, "id">) => {
     editar(aluno.id, dados);
@@ -233,10 +240,10 @@ export default function StudentDetailPage({
               atividadesAluno.map((a) => (
                 <div key={a.id} className="mb-4 p-4 bg-background rounded-lg border border-border">
                   <div className="flex justify-between mb-2">
-                    <h3 className="font-medium text-sm">{a.titulo}</h3>
+                    <h3 className="font-medium text-sm">{a.title}</h3>
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {a.data.toLocaleDateString("pt-BR")}
+                      {new Date(a.createdAt).toLocaleDateString("pt-BR")}
                     </span>
                   </div>
                   <details>

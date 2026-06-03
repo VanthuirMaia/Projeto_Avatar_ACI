@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Search, FileText, Sparkles, TrendingUp, Pencil, Trash2, MessageCircle } from "lucide-react";
+import { Plus, Search, FileText, Sparkles, TrendingUp, Pencil, Trash2, MessageCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAlunos } from "../../context/AlunosContext";
 import { useAdaptacoesHistory } from "../../context/AdaptacoesHistoryContext";
@@ -23,7 +23,7 @@ function diagBadge(d: string) {
 
 export default function StudentsPage() {
   const router = useRouter();
-  const { alunos, criar, editar, remover, setAlunoAtivo } = useAlunos();
+  const { alunos, criar, editar, remover, setAlunoAtivo, erro, recarregar } = useAlunos();
   const { adaptacoes } = useAdaptacoesHistory();
 
   const [search, setSearch] = useState("");
@@ -99,6 +99,24 @@ export default function StudentsPage() {
           />
         </div>
       </div>
+
+      {/* Banner de erro de conexão */}
+      {erro && (
+        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <span className="flex-1">
+            Não foi possível carregar os alunos do servidor.
+            {alunos.length > 0 && " Exibindo dados salvos localmente."}
+          </span>
+          <button
+            onClick={recarregar}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 hover:bg-red-200 rounded-md transition-colors font-medium"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Tentar novamente
+          </button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
