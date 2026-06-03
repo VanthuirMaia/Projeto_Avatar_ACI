@@ -11,12 +11,8 @@ services:
     env_file:
       - ./Backend/.env
     volumes:
+      - ./Backend/data:/app/data
       - ./Backend/data/rag_store:/app/data/rag_store:ro
-      - ./Backend/data/users.json:/app/data/users.json
-      - ./Backend/data/peis.json:/app/data/peis.json
-      - ./Backend/data/alunos.json:/app/data/alunos.json
-      - ./Backend/data/metrics.jsonl:/app/data/metrics.jsonl
-      - ./Backend/data/audit.jsonl:/app/data/audit.jsonl
       - ./docs_RAG_TEA:/app/docs_RAG_TEA:ro
       - ./videos:/app/videos:ro
     healthcheck:
