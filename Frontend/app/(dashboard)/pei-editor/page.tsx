@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Sparkles, Save, Download, User, Target, Lightbulb,
   Package, ClipboardCheck, Plus, X, Loader2, FileText, Calendar, Trash2,
@@ -10,6 +10,7 @@ import { useForm, useFieldArray, Control, UseFormRegister, useWatch } from "reac
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAlunos } from "../../context/AlunosContext";
 import { sugerirPEI, salvarPEI, carregarPEI, listarPEIs, deletarPEI, type SugestoesPEI, type PEIPayload } from "../../utils/api";
+import { escapeHtml } from "../../utils/html";
 import { peiSchema, PEIFormData } from "../../schemas/pei.schema";
 
 // ── Exemplos por seção ────────────────────────────────────────────────────────
@@ -71,6 +72,7 @@ export default function PEIEditorPage() {
   const [toast, setToast] = useState<{ msg: string; tipo: "ok" | "erro" } | null>(null);
   const [peisExistentes, setPeisExistentes] = useState<PEIPayload[]>([]);
   const [editandoPEI, setEditandoPEI] = useState<PEIPayload | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   // Carrega lista de PEIs salvos
   useEffect(() => {
@@ -112,11 +114,16 @@ export default function PEIEditorPage() {
 
   // Carrega PEI salvo do backend ao selecionar aluno
   useEffect(() => {
+    // Aborta requests anteriores para evitar race condition
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
     if (!alunoAtual) { setSugestoes(null); return; }
 
-    carregarPEI(alunoAtual.id)
+    carregarPEI(alunoAtual.id, ctrl.signal)
       .then((pei) => {
-        if (!pei) return;
+        if (ctrl.signal.aborted || !pei) return;
         reset({
           alunoId:     alunoAtual.id,
           objetivos:   pei.objetivos.map((v) => ({ value: v })),
@@ -126,7 +133,7 @@ export default function PEIEditorPage() {
         });
       })
       .catch(() => {
-        // Fallback: tenta localStorage
+        if (ctrl.signal.aborted) return;
         try {
           const saved = localStorage.getItem(`avatartea_pei_${alunoAtual.id}`);
           if (saved) reset(JSON.parse(saved));
@@ -136,17 +143,20 @@ export default function PEIEditorPage() {
     setCarregandoSugestoes(true);
     setErroSugestoes("");
     setSugestoes(null);
-    sugerirPEI(alunoAtual)
-      .then(setSugestoes)
-      .catch((err: unknown) =>
+    sugerirPEI(alunoAtual, ctrl.signal)
+      .then((s) => { if (!ctrl.signal.aborted) setSugestoes(s); })
+      .catch((err: unknown) => {
+        if (ctrl.signal.aborted) return;
         setErroSugestoes(
           err instanceof Error && err.name === "AbortError"
             ? "As sugestões estão demorando. Tente novamente."
             : "Não foi possível carregar sugestões. Verifique sua conexão."
-        )
-      )
-      .finally(() => setCarregandoSugestoes(false));
-  }, [alunoAtual?.id]);
+        );
+      })
+      .finally(() => { if (!ctrl.signal.aborted) setCarregandoSugestoes(false); });
+
+    return () => ctrl.abort();
+  }, [alunoAtual?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const excluirPEI = async (pei: PEIPayload, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -234,7 +244,7 @@ export default function PEIEditorPage() {
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8"/>
-  <title>PEI — ${alunoAtual.nome}</title>
+  <title>PEI — ${escapeHtml(alunoAtual.nome)}</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; color: #1a1a1a; }
     h1 { font-size: 22px; border-bottom: 2px solid #6366f1; padding-bottom: 8px; }
@@ -250,9 +260,9 @@ export default function PEIEditorPage() {
 <body>
   <h1>Plano Educacional Individualizado (PEI)</h1>
   <div class="info">
-    <span>Aluno:</span> ${alunoAtual.nome} &nbsp;|&nbsp;
-    <span>Diagnóstico:</span> ${alunoAtual.diagnostico} &nbsp;|&nbsp;
-    <span>Série:</span> ${alunoAtual.serie} &nbsp;|&nbsp;
+    <span>Aluno:</span> ${escapeHtml(alunoAtual.nome)} &nbsp;|&nbsp;
+    <span>Diagnóstico:</span> ${escapeHtml(alunoAtual.diagnostico)} &nbsp;|&nbsp;
+    <span>Série:</span> ${escapeHtml(alunoAtual.serie)} &nbsp;|&nbsp;
     <span>Data:</span> ${new Date().toLocaleDateString("pt-BR")}
   </div>
   <h2>🎯 Objetivos</h2><ul>${linhas(data.objetivos)}</ul>

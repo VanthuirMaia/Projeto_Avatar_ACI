@@ -13,6 +13,7 @@ import { useAlunos } from "../../context/AlunosContext";
 import { useAdaptacoesHistory } from "../../context/AdaptacoesHistoryContext";
 import type { AdaptacaoSalva } from "../../context/AdaptacoesHistoryContext";
 import { adaptarAtividade } from "../../utils/api";
+import { escapeHtml } from "../../utils/html";
 
 type Step = 1 | 2 | 3;
 
@@ -192,10 +193,10 @@ export default function AdaptarAtividadePage() {
 <body>
   <h1>Atividade Adaptada</h1>
   <div class="meta">
-    Aluno: <strong>${aluno?.nome}</strong> &bull;
-    ${aluno?.diagnostico} &bull;
-    ${aluno?.serie} &bull;
-    ${aluno?.idade} anos &bull;
+    Aluno: <strong>${escapeHtml(aluno?.nome ?? "")}</strong> &bull;
+    ${escapeHtml(aluno?.diagnostico ?? "")} &bull;
+    ${escapeHtml(aluno?.serie ?? "")} &bull;
+    ${aluno?.idade ?? ""} anos &bull;
     Gerado em ${dataGeracao}
   </div>
   ${mdToHtml(textoAdaptado)}
@@ -435,6 +436,7 @@ export default function AdaptarAtividadePage() {
           <button
             onClick={novaAdaptacao}
             title="Nova adaptação"
+            aria-label="Nova adaptação"
             className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />

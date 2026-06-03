@@ -29,6 +29,7 @@ export default function StudentsPage() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editando, setEditando] = useState<Aluno | null>(null);
+  const [erroModal, setErroModal] = useState<string | null>(null);
   const [totalPEIs, setTotalPEIs] = useState<number | null>(null);
 
   const agora = new Date();
@@ -48,13 +49,18 @@ export default function StudentsPage() {
   );
 
   const handleSave = async (dados: Omit<Aluno, "id">) => {
-    if (editando) {
-      await editar(editando.id, dados);
-    } else {
-      await criar(dados);
+    setErroModal(null);
+    try {
+      if (editando) {
+        await editar(editando.id, dados);
+      } else {
+        await criar(dados);
+      }
+      setModalOpen(false);
+      setEditando(null);
+    } catch (err) {
+      setErroModal(err instanceof Error ? err.message : "Erro ao salvar. Verifique a conexão com o servidor.");
     }
-    setModalOpen(false);
-    setEditando(null);
   };
 
   const handleDelete = async (aluno: Aluno) => {
@@ -275,7 +281,8 @@ export default function StudentsPage() {
         <StudentFormModal
           aluno={editando ?? undefined}
           onSave={handleSave}
-          onClose={() => { setModalOpen(false); setEditando(null); }}
+          onClose={() => { setModalOpen(false); setEditando(null); setErroModal(null); }}
+          erroExterno={erroModal}
         />
       )}
     </div>

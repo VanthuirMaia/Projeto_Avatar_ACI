@@ -42,9 +42,10 @@ interface StudentFormModalProps {
   aluno?: Aluno;
   onSave: (dados: Omit<Aluno, "id">) => void;
   onClose: () => void;
+  erroExterno?: string | null;
 }
 
-export default function StudentFormModal({ aluno, onSave, onClose }: StudentFormModalProps) {
+export default function StudentFormModal({ aluno, onSave, onClose, erroExterno }: StudentFormModalProps) {
   const isEdit = Boolean(aluno);
 
   const [nome, setNome] = useState(aluno?.nome ?? "");
@@ -110,6 +111,7 @@ export default function StudentFormModal({ aluno, onSave, onClose }: StudentForm
           <button
             type="button"
             onClick={onClose}
+            aria-label="Fechar"
             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
           >
             <X className="w-4 h-4" />
@@ -273,6 +275,13 @@ export default function StudentFormModal({ aluno, onSave, onClose }: StudentForm
                 ))}
             </div>
           </div>
+
+          {/* Erro externo (ex: backend offline) */}
+          {erroExterno && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {erroExterno}
+            </div>
+          )}
 
           {/* Ações */}
           <div className="flex justify-end gap-3 pt-1">

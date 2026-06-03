@@ -1,16 +1,25 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   BarChart2, Users, Activity, ShieldCheck, FileDown,
   CheckCircle, XCircle, Clock, Zap, AlertTriangle,
-  TrendingUp, MessageSquare, BookOpen, RefreshCw, LogOut,
+  TrendingUp, MessageSquare, BookOpen, RefreshCw, LogOut, X, FileText,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   buscarAdminStats, listarAdminUsuarios, atualizarStatusUsuario,
-  type AdminStats, type AdminUser,
+  buscarAtividadeProfessor, buscarMetricasProfessor,
+  type AdminStats, type AdminUser, type AtividadeItem, type MetricasProfessor,
 } from "../utils/api";
+
+const ACTION_LABELS: Record<string, string> = {
+  LOGIN: "Login", REGISTER: "Cadastro",
+  ACCESS_ALUNOS: "Consultou alunos", CREATE_ALUNO: "Criou aluno",
+  UPDATE_ALUNO: "Editou aluno", DELETE_ALUNO: "Removeu aluno",
+  ACCESS_PEI: "Acessou PEI", SAVE_PEI: "Salvou PEI", DELETE_PEI: "Removeu PEI",
+};
 
 const INTENT_LABELS: Record<string, string> = {
   adaptacao_tea:           "Adaptação para TEA",
@@ -37,6 +46,7 @@ type TabId = (typeof TABS)[number]["id"];
 const PERIODS = [7, 30, 90, 365] as const;
 
 export default function AdminPage() {
+  const router = useRouter();
   const [adminKey,    setAdminKey]    = useState("");
   const [keyInput,    setKeyInput]    = useState("");
   const [keyError,    setKeyError]    = useState("");
@@ -50,11 +60,20 @@ export default function AdminPage() {
   const [usersLoading, setUsersLoading] = useState(false);
   const [userFilter,   setUserFilter]   = useState<"todos" | "pendente" | "aprovado" | "bloqueado">("todos");
   const [toast,        setToast]        = useState<{ msg: string; ok: boolean } | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [userActivity, setUserActivity] = useState<AtividadeItem[]>([]);
+  const [userMetrics,  setUserMetrics]  = useState<MetricasProfessor | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
+    // Requer sessão ativa — admin é operação sensível
+    if (!localStorage.getItem("avatartea_token")) {
+      router.replace("/login");
+      return;
+    }
     const saved = sessionStorage.getItem("avatartea_admin_key");
     if (saved) setAdminKey(saved);
-  }, []);
+  }, [router]);
 
   const showToast = (msg: string, ok = true) => {
     setToast({ msg, ok });
@@ -101,6 +120,23 @@ export default function AdminPage() {
     setAdminKey("");
     setStats(null);
     setUsers([]);
+    setSelectedUser(null);
+  };
+
+  const abrirDetalhesUsuario = async (user: AdminUser) => {
+    setSelectedUser(user);
+    setDetailLoading(true);
+    setUserActivity([]);
+    setUserMetrics(null);
+    try {
+      const [metrics, activity] = await Promise.all([
+        buscarMetricasProfessor(user.id, 30),
+        buscarAtividadeProfessor(user.id, 30),
+      ]);
+      setUserMetrics(metrics);
+      setUserActivity(activity);
+    } catch { /* exibe painel vazio com estado de erro */ }
+    finally { setDetailLoading(false); }
   };
 
   const handleUpdateUser = async (userId: string, status: "aprovado" | "bloqueado") => {
@@ -231,12 +267,93 @@ export default function AdminPage() {
             users={users} loading={usersLoading}
             filter={userFilter} setFilter={setUserFilter}
             onUpdate={handleUpdateUser}
+            onDetail={abrirDetalhesUsuario}
           />
         )}
         {tab === "uso"       && <TabUso       stats={stats}  loading={statsLoading} />}
         {tab === "saude"     && <TabSaude     stats={stats}  loading={statsLoading} />}
         {tab === "relatorio" && <TabRelatorio stats={stats}  users={users} days={days} loading={statsLoading} />}
       </main>
+
+      {/* Painel de detalhes do usuário (drill-down) */}
+      <AnimatePresence>
+        {selectedUser && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 0.4 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black z-30"
+              onClick={() => setSelectedUser(null)}
+            />
+            <motion.div
+              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.2 }}
+              className="fixed right-0 top-0 h-full w-full max-w-md bg-card border-l border-border shadow-2xl z-40 flex flex-col"
+            >
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+                <div>
+                  <p className="font-bold">{selectedUser.nome}</p>
+                  <p className="text-xs text-muted-foreground">{selectedUser.email}</p>
+                </div>
+                <button onClick={() => setSelectedUser(null)} aria-label="Fechar" className="p-1.5 rounded-lg hover:bg-accent">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                {detailLoading && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin" /> Carregando...
+                  </p>
+                )}
+                {!detailLoading && userMetrics && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: "Alunos", value: userMetrics.total_alunos },
+                      { label: "PEIs", value: userMetrics.total_peis },
+                      { label: "Ações (30d)", value: userMetrics.audit.total_eventos },
+                      { label: "Dias ativos", value: userMetrics.audit.dias_ativos },
+                    ].map((c) => (
+                      <div key={c.label} className="bg-background rounded-xl p-4 border border-border">
+                        <p className="text-xs text-muted-foreground mb-1">{c.label}</p>
+                        <p className="text-2xl font-bold">{c.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {!detailLoading && userMetrics && Object.keys(userMetrics.audit.por_acao).length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Por tipo de ação</p>
+                    {Object.entries(userMetrics.audit.por_acao).sort(([,a],[,b]) => b-a).map(([k, v]) => (
+                      <div key={k} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
+                        <span className="text-muted-foreground">{ACTION_LABELS[k] ?? k}</span>
+                        <span className="font-medium">{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {!detailLoading && userActivity.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Últimas ações</p>
+                    <div className="space-y-2">
+                      {userActivity.slice(0, 20).map((item, i) => (
+                        <div key={i} className="text-sm border-l-2 border-primary/30 pl-3">
+                          <p className="font-medium">{ACTION_LABELS[item.action] ?? item.action}</p>
+                          {typeof item.details?.nome === "string" && <p className="text-xs text-muted-foreground">{item.details.nome}</p>}
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(item.ts).toLocaleString("pt-BR")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {!detailLoading && userActivity.length === 0 && !userMetrics && (
+                  <p className="text-sm text-muted-foreground">Sem dados disponíveis para este usuário.</p>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -365,12 +482,13 @@ function TabOverview({ stats, loading }: { stats: AdminStats | null; loading: bo
 }
 
 // ── Tab: Usuários ─────────────────────────────────────────────────────────────
-function TabUsuarios({ users, loading, filter, setFilter, onUpdate }: {
+function TabUsuarios({ users, loading, filter, setFilter, onUpdate, onDetail }: {
   users: AdminUser[];
   loading: boolean;
   filter: "todos" | "pendente" | "aprovado" | "bloqueado";
   setFilter: (f: "todos" | "pendente" | "aprovado" | "bloqueado") => void;
   onUpdate: (id: string, status: "aprovado" | "bloqueado") => void;
+  onDetail: (user: AdminUser) => void;
 }) {
   if (loading) return <Spinner />;
 
@@ -446,6 +564,12 @@ function TabUsuarios({ users, loading, filter, setFilter, onUpdate }: {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => onDetail(user)}
+                        className="px-3 py-1 text-xs bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors font-medium"
+                      >
+                        Detalhes
+                      </button>
                       {user.status !== "aprovado" && (
                         <button
                           onClick={() => onUpdate(user.id, "aprovado")}

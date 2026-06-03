@@ -54,6 +54,7 @@ export default function AssistantPage() {
   const mutadoRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -61,7 +62,10 @@ export default function AssistantPage() {
   }, [mensagens]);
 
   useEffect(() => {
-    return () => { audioRef.current?.pause(); };
+    return () => {
+      audioRef.current?.pause();
+      abortRef.current?.abort();
+    };
   }, []);
 
   // Sincroniza sessionIdRef com o contexto
@@ -133,9 +137,10 @@ export default function AssistantPage() {
     setAvatarEstado("pensando");
 
     let resposta: RespostaChat;
-    const abortController = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
     try {
-      resposta = await buscarRespostaChat(mensagemTexto, "geral", alunoSelecionado ?? undefined, abortController.signal);
+      resposta = await buscarRespostaChat(mensagemTexto, "geral", alunoSelecionado ?? undefined, abortRef.current.signal);
     } catch (err) {
       const isTimeout = err instanceof Error && (err.name === "AbortError" || err.message.includes("abort"));
       resposta = {
@@ -385,6 +390,7 @@ export default function AssistantPage() {
             <button
               onClick={novoChat}
               title="Nova conversa"
+              aria-label="Nova conversa"
               className="p-1 rounded hover:bg-accent text-muted-foreground"
             >
               <Plus className="w-4 h-4" />

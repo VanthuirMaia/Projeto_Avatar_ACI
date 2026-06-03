@@ -27,6 +27,11 @@ if _SENTRY_DSN:
     )
 
 from metrics import log_event, get_stats, rotate_if_needed
+from audit import (
+    audit_event, get_activity_timeline, get_audit_summary, get_users_summary,
+    LOGIN, REGISTER, ACCESS_ALUNOS, CREATE_ALUNO, UPDATE_ALUNO, DELETE_ALUNO,
+    ACCESS_PEI, SAVE_PEI, DELETE_PEI,
+)
 
 try:
     import jwt as _pyjwt
@@ -56,6 +61,22 @@ _DOCS = _SRC.parent.parent / "docs_RAG_TEA"
 # ── Auth config ────────────────────────────────────────────────────────────────
 _USERS_FILE  = _DATA / "users.json"
 _PEIS_FILE   = _DATA / "peis.json"
+
+# ── Rate limiting (login) ──────────────────────────────────────────────────────
+_login_attempts: dict[str, list[float]] = {}  # ip → [timestamps]
+_RATE_LIMIT_MAX = 5
+_RATE_LIMIT_WINDOW = 60  # segundos
+
+
+def _check_rate_limit(ip: str) -> bool:
+    """Retorna True se dentro do limite, False se deve rejeitar."""
+    now = time.time()
+    history = [t for t in _login_attempts.get(ip, []) if now - t < _RATE_LIMIT_WINDOW]
+    _login_attempts[ip] = history
+    if len(history) >= _RATE_LIMIT_MAX:
+        return False
+    _login_attempts[ip].append(now)
+    return True
 _ALUNOS_FILE = _DATA / "alunos.json"
 _JWT_SECRET = os.getenv("JWT_SECRET", "avatartea_secret_2025")
 _ADMIN_KEY  = os.getenv("ADMIN_KEY",  "avatartea_admin_2025")
@@ -665,14 +686,6 @@ def auth_register():
     if any(u["email"] == email for u in db["users"]):
         return jsonify({"error": "E-mail já cadastrado."}), 409
 
-    user = {
-        "id":         str(uuid.uuid4()),
-        "nome":       nome,
-        "email":      email,
-        "senha_hash": _hash_senha(email, senha),
-        "status":     "pendente",
-        "criado_em":  datetime.now(timezone.utc).isoformat(),
-    }
     role = data.get("role", "professor").strip()
     if role not in ("professor", "coordenador"):
         role = "professor"
@@ -688,6 +701,7 @@ def auth_register():
     }
     db["users"].append(user)
     _save_users(db)
+    audit_event(user["id"], user["nome"], REGISTER, "user", user["id"])
     return jsonify({"message": "Cadastro realizado. Aguarde aprovação."}), 201
 
 
@@ -696,6 +710,10 @@ def auth_register():
 def auth_login():
     if not _HAS_JWT:
         return jsonify({"error": "PyJWT não instalado no servidor."}), 503
+
+    ip = request.remote_addr or "unknown"
+    if not _check_rate_limit(ip):
+        return jsonify({"error": "Muitas tentativas. Aguarde 1 minuto."}), 429
 
     data  = request.get_json(force=True) or {}
     email = data.get("email", "").strip().lower()
@@ -716,6 +734,7 @@ def auth_login():
         return jsonify({"error": "Conta bloqueada. Entre em contato com o administrador."}), 403
 
     token = _gerar_token(user)
+    audit_event(user["id"], user["nome"], LOGIN, "user", user["id"])
     return jsonify({"token": token, "nome": user["nome"], "role": user.get("role", "professor")}), 200
 
 
@@ -779,6 +798,7 @@ def list_alunos():
     else:
         alunos = [a for a in db["alunos"] if a.get("professor_id") == jwt["id"]]
 
+    audit_event(jwt["id"], jwt["nome"], ACCESS_ALUNOS, "aluno")
     return jsonify({"alunos": alunos}), 200
 
 
@@ -813,6 +833,8 @@ def create_aluno():
     db = _load_alunos()
     db["alunos"].append(aluno)
     _save_alunos(db)
+    audit_event(jwt["id"], jwt["nome"], CREATE_ALUNO, "aluno", aluno["id"],
+                {"nome": nome, "diagnostico": aluno["diagnostico"]})
     return jsonify(aluno), 201
 
 
@@ -838,6 +860,7 @@ def update_aluno(aluno_id: str):
     aluno["atualizado_em"] = datetime.now(timezone.utc).isoformat()
 
     _save_alunos(db)
+    audit_event(jwt["id"], jwt["nome"], UPDATE_ALUNO, "aluno", aluno_id)
     return jsonify(aluno), 200
 
 
@@ -855,8 +878,10 @@ def delete_aluno(aluno_id: str):
     if jwt["role"] != "coordenador" and aluno.get("professor_id") != jwt["id"]:
         return jsonify({"error": "Acesso negado."}), 403
 
+    nome_aluno = aluno.get("nome", "")
     db["alunos"] = [a for a in db["alunos"] if a["id"] != aluno_id]
     _save_alunos(db)
+    audit_event(jwt["id"], jwt["nome"], DELETE_ALUNO, "aluno", aluno_id, {"nome": nome_aluno})
     return jsonify({"message": "Aluno removido."}), 200
 
 
@@ -898,6 +923,7 @@ def save_pei():
         peis["peis"].append(entry)
 
     _save_peis(peis)
+    audit_event(jwt["id"], jwt["nome"], SAVE_PEI, "pei", aluno_id)
     return jsonify({"message": "PEI salvo com sucesso."}), 200
 
 
@@ -918,6 +944,7 @@ def delete_pei(aluno_id: str):
         return jsonify({"error": "PEI não encontrado."}), 404
 
     _save_peis(peis)
+    audit_event(jwt["id"], jwt["nome"], DELETE_PEI, "pei", aluno_id)
     return jsonify({"message": "PEI removido."}), 200
 
 
@@ -938,6 +965,7 @@ def get_pei(aluno_id: str):
     if not pei:
         return jsonify({"error": "PEI não encontrado."}), 404
 
+    audit_event(jwt["id"], jwt["nome"], ACCESS_PEI, "pei", aluno_id)
     return jsonify({
         "objetivos":   pei.get("objetivos",   []),
         "estrategias": pei.get("estrategias", []),
@@ -945,6 +973,82 @@ def get_pei(aluno_id: str):
         "avaliacoes":  pei.get("avaliacoes",  []),
         "updated_at":  pei.get("updated_at"),
     }), 200
+
+
+# ── Helpers de autorização para coordenador ────────────────────────────────────
+def _require_coordinator_or_admin():
+    """
+    Autoriza coordenadores (via JWT) ou admins (via X-Admin-Key).
+    Retorna o user_id do coordenador autenticado, ou None se admin key.
+    Lança 403 se nenhuma credencial válida.
+    """
+    # Tenta admin key primeiro
+    if request.headers.get("X-Admin-Key") == _ADMIN_KEY:
+        return None  # admin key válida, sem user_id específico
+
+    # Tenta JWT com role=coordenador
+    jwt = _require_jwt()
+    if jwt and jwt.get("role") == "coordenador":
+        return jwt["id"]
+
+    from flask import abort
+    abort(403)
+
+
+# ── GET /coordinator/users ─────────────────────────────────────────────────────
+@app.route("/coordinator/users", methods=["GET"])
+def coordinator_list_users():
+    _require_coordinator_or_admin()
+    days = min(int(request.args.get("days", 30)), 365)
+
+    db_users  = _load_users()
+    db_alunos = _load_alunos()
+    peis_db   = _load_peis()
+
+    summary = get_users_summary(db_users["users"], db_alunos["alunos"], days)
+
+    # Adiciona contagem de PEIs por professor
+    for u in summary:
+        u["total_peis"] = sum(
+            1 for p in peis_db["peis"] if p.get("professor_id") == u["id"]
+        )
+        # Remove senha_hash se existir (não deve estar, mas por segurança)
+        u.pop("senha_hash", None)
+
+    return jsonify({"users": summary, "periodo_dias": days}), 200
+
+
+# ── GET /coordinator/users/<user_id>/metrics ───────────────────────────────────
+@app.route("/coordinator/users/<user_id>/metrics", methods=["GET"])
+def coordinator_user_metrics(user_id: str):
+    _require_coordinator_or_admin()
+    days = min(int(request.args.get("days", 30)), 365)
+
+    db_alunos = _load_alunos()
+    peis_db   = _load_peis()
+
+    alunos_do_prof = [a for a in db_alunos["alunos"] if a.get("professor_id") == user_id]
+    peis_do_prof   = [p for p in peis_db["peis"]     if p.get("professor_id") == user_id]
+
+    audit_summary = get_audit_summary(user_id=user_id, days=days)
+
+    return jsonify({
+        "user_id":       user_id,
+        "periodo_dias":  days,
+        "total_alunos":  len(alunos_do_prof),
+        "total_peis":    len(peis_do_prof),
+        "audit":         audit_summary,
+    }), 200
+
+
+# ── GET /coordinator/users/<user_id>/activity ──────────────────────────────────
+@app.route("/coordinator/users/<user_id>/activity", methods=["GET"])
+def coordinator_user_activity(user_id: str):
+    _require_coordinator_or_admin()
+    limit = min(int(request.args.get("limit", 50)), 200)
+
+    timeline = get_activity_timeline(user_id=user_id, limit=limit)
+    return jsonify({"user_id": user_id, "activity": timeline}), 200
 
 
 if __name__ == "__main__":

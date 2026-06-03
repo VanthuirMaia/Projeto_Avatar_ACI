@@ -172,10 +172,11 @@ export async function salvarPEI(alunoId: string, data: Omit<PEIPayload, "updated
   if (!res.ok) throw new Error(`Erro ao salvar PEI: ${res.status}`);
 }
 
-export async function carregarPEI(alunoId: string): Promise<PEIPayload | null> {
+export async function carregarPEI(alunoId: string, signal?: AbortSignal): Promise<PEIPayload | null> {
   const res = await fetchComTimeout(
     `${BACKEND_URL}/pei/${alunoId}`,
     { method: "GET", headers: authHeaders() },
+    signal,
   );
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Erro ao carregar PEI: ${res.status}`);
@@ -253,6 +254,75 @@ export async function atualizarStatusUsuario(
     { method: "PATCH", headers: adminHeaders(adminKey), body: JSON.stringify({ status }) },
   );
   if (!res.ok) throw new Error(`Erro ao atualizar usuário: ${res.status}`);
+}
+
+// ── Coordinator / Observabilidade ─────────────────────────────────────────────
+
+export interface ProfessorResumo {
+  id: string;
+  nome: string;
+  email: string;
+  role: string;
+  status: string;
+  criado_em: string;
+  total_alunos: number;
+  total_peis: number;
+  total_eventos: number;
+  dias_ativos: number;
+  ultima_atividade: string | null;
+  por_acao: Record<string, number>;
+}
+
+export interface MetricasProfessor {
+  user_id: string;
+  periodo_dias: number;
+  total_alunos: number;
+  total_peis: number;
+  audit: {
+    total_eventos: number;
+    por_acao: Record<string, number>;
+    dias_ativos: number;
+    ultima_atividade: string | null;
+  };
+}
+
+export interface AtividadeItem {
+  ts: string;
+  user_id: string;
+  user_nome: string;
+  action: string;
+  entity_type: string;
+  entity_id?: string;
+  details?: Record<string, unknown>;
+}
+
+export async function listarProfessores(days = 30): Promise<ProfessorResumo[]> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/coordinator/users?days=${days}`,
+    { method: "GET", headers: authHeaders() },
+  );
+  if (!res.ok) throw new Error(`Erro ao listar professores: ${res.status}`);
+  const data = await res.json();
+  return data.users as ProfessorResumo[];
+}
+
+export async function buscarMetricasProfessor(userId: string, days = 30): Promise<MetricasProfessor> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/coordinator/users/${userId}/metrics?days=${days}`,
+    { method: "GET", headers: authHeaders() },
+  );
+  if (!res.ok) throw new Error(`Erro ao buscar métricas: ${res.status}`);
+  return res.json() as Promise<MetricasProfessor>;
+}
+
+export async function buscarAtividadeProfessor(userId: string, limit = 50): Promise<AtividadeItem[]> {
+  const res = await fetchComTimeout(
+    `${BACKEND_URL}/coordinator/users/${userId}/activity?limit=${limit}`,
+    { method: "GET", headers: authHeaders() },
+  );
+  if (!res.ok) throw new Error(`Erro ao buscar atividade: ${res.status}`);
+  const data = await res.json();
+  return data.activity as AtividadeItem[];
 }
 
 export async function sugerirPEI(aluno: Aluno, signal?: AbortSignal): Promise<SugestoesPEI> {

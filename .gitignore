@@ -44,3 +44,4 @@ Backend/data/users.json
 Backend/data/alunos.json
 Backend/data/peis.json
 Backend/data/metrics.jsonl
+Backend/data/audit.jsonl

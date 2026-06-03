@@ -13,18 +13,20 @@ import {
   X,
   LogOut,
   ShieldCheck,
+  BarChart2,
 } from "lucide-react";
 import { AlunosProvider } from "../context/AlunosContext";
 import { ChatHistoryProvider } from "../context/ChatHistoryContext";
 import { AdaptacoesHistoryProvider } from "../context/AdaptacoesHistoryContext";
 import AuthGuard from "../components/AuthGuard";
 
-const menu = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Alunos", href: "/students", icon: Users },
-  { name: "Assistente", href: "/assistant", icon: MessageCircle },
-  { name: "Adaptar Atividade", href: "/activity-adaptation", icon: Sparkles },
-  { name: "Editor de PEI", href: "/pei-editor", icon: FileText },
+const menuBase = [
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["professor", "coordenador"] },
+  { name: "Alunos", href: "/students", icon: Users, roles: ["professor", "coordenador"] },
+  { name: "Assistente", href: "/assistant", icon: MessageCircle, roles: ["professor", "coordenador"] },
+  { name: "Adaptar Atividade", href: "/activity-adaptation", icon: Sparkles, roles: ["professor", "coordenador"] },
+  { name: "Editor de PEI", href: "/pei-editor", icon: FileText, roles: ["professor", "coordenador"] },
+  { name: "Relatórios", href: "/coordinator", icon: BarChart2, roles: ["coordenador"] },
 ];
 
 export default function DashboardLayout({
@@ -37,6 +39,8 @@ export default function DashboardLayout({
   const [menuAberto, setMenuAberto] = useState(false);
   const [nomeUsuario, setNomeUsuario] = useState("");
   const [roleUsuario, setRoleUsuario] = useState("");
+
+  const menu = menuBase.filter((item) => item.roles.includes(roleUsuario || "professor"));
 
   useEffect(() => {
     setNomeUsuario(localStorage.getItem("avatartea_user") ?? "");

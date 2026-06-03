@@ -83,12 +83,13 @@ export function AlunosProvider({ children }: { children: ReactNode }) {
         gravarCache(next);
         return next;
       });
-    } catch {
+    } catch (err) {
       setAlunos((prev) => {
         const next = prev.filter((a) => a.id !== id);
         gravarCache(next);
         return next;
       });
+      throw err instanceof Error ? err : new Error("Não foi possível salvar o aluno.");
     }
   }, []);
 
