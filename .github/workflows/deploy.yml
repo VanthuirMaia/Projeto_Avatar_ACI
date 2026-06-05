@@ -5,10 +5,6 @@ on:
     branches:
       - main
 
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
-
 jobs:
   deploy:
     name: Deploy na VPS
@@ -21,8 +17,6 @@ jobs:
           host: 72.61.56.252
           username: root
           key: ${{ secrets.VPS_SSH_KEY }}
-          timeout: 5m
-          command_timeout: 30m
           script: |
             cd /var/www/avatartea
             # Preserva dados de produção antes do reset
@@ -36,10 +30,8 @@ jobs:
             [ -f ./Backend/data/users.json ]  || echo '{"users":[]}'  > ./Backend/data/users.json
             [ -f ./Backend/data/peis.json ]   || echo '{"peis":[]}'   > ./Backend/data/peis.json
             [ -f ./Backend/data/alunos.json ] || echo '{"alunos":[]}' > ./Backend/data/alunos.json
-            # Build sequencial para não saturar CPU/RAM da VPS
-            docker compose -f docker-compose.prod.yml build avatartea-backend
-            docker compose -f docker-compose.prod.yml build avatartea-frontend
-            docker compose -f docker-compose.prod.yml up -d
+            # audit.jsonl e metrics.jsonl são criados automaticamente pelo Python se não existirem
+            docker compose -f docker-compose.prod.yml up -d --build
             echo "==> Health check (aguardando 15s)..."
             sleep 15
             curl -sf https://avatartea.axiodev.cloud/api/health || echo "WARN: health check falhou"
