@@ -1052,4 +1052,5 @@ def coordinator_user_activity(user_id: str):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5022)))
+    debug = os.getenv("ENVIRONMENT", "production") != "production"
+    app.run(debug=debug, host="0.0.0.0", port=int(os.environ.get("PORT", 5022)))
