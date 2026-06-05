@@ -306,19 +306,19 @@ export async function listarProfessores(days = 30): Promise<ProfessorResumo[]> {
   return data.users as ProfessorResumo[];
 }
 
-export async function buscarMetricasProfessor(userId: string, days = 30): Promise<MetricasProfessor> {
+export async function buscarMetricasProfessor(userId: string, days = 30, adminKey?: string): Promise<MetricasProfessor> {
   const res = await fetchComTimeout(
     `${BACKEND_URL}/coordinator/users/${userId}/metrics?days=${days}`,
-    { method: "GET", headers: authHeaders() },
+    { method: "GET", headers: adminKey ? adminHeaders(adminKey) : authHeaders() },
   );
   if (!res.ok) throw new Error(`Erro ao buscar métricas: ${res.status}`);
   return res.json() as Promise<MetricasProfessor>;
 }
 
-export async function buscarAtividadeProfessor(userId: string, limit = 50): Promise<AtividadeItem[]> {
+export async function buscarAtividadeProfessor(userId: string, limit = 50, adminKey?: string): Promise<AtividadeItem[]> {
   const res = await fetchComTimeout(
     `${BACKEND_URL}/coordinator/users/${userId}/activity?limit=${limit}`,
-    { method: "GET", headers: authHeaders() },
+    { method: "GET", headers: adminKey ? adminHeaders(adminKey) : authHeaders() },
   );
   if (!res.ok) throw new Error(`Erro ao buscar atividade: ${res.status}`);
   const data = await res.json();

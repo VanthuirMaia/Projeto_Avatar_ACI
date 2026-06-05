@@ -130,8 +130,8 @@ export default function AdminPage() {
     setUserMetrics(null);
     try {
       const [metrics, activity] = await Promise.all([
-        buscarMetricasProfessor(user.id, 30),
-        buscarAtividadeProfessor(user.id, 30),
+        buscarMetricasProfessor(user.id, 30, adminKey),
+        buscarAtividadeProfessor(user.id, 50, adminKey),
       ]);
       setUserMetrics(metrics);
       setUserActivity(activity);
