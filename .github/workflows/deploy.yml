@@ -5,33 +5,29 @@ on:
     branches:
       - main
 
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Deploy na VPS
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
-      - name: Conectar na VPS e fazer deploy
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 72.61.56.252
-          username: root
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            cd /var/www/avatartea
-            # Preserva dados de produção antes do reset
-            cp Backend/data/users.json /tmp/avatartea_users_backup.json 2>/dev/null || true
-            # Força sincronização com o remoto (evita conflitos silenciosos)
-            git fetch origin main
-            git reset --hard origin/main
-            # Restaura dados de produção após o reset
-            [ -f /tmp/avatartea_users_backup.json ] && cp /tmp/avatartea_users_backup.json Backend/data/users.json
-            mkdir -p ./Backend/data
-            [ -f ./Backend/data/users.json ]  || echo '{"users":[]}'  > ./Backend/data/users.json
-            [ -f ./Backend/data/peis.json ]   || echo '{"peis":[]}'   > ./Backend/data/peis.json
-            [ -f ./Backend/data/alunos.json ] || echo '{"alunos":[]}' > ./Backend/data/alunos.json
-            # audit.jsonl e metrics.jsonl são criados automaticamente pelo Python se não existirem
-            docker compose -f docker-compose.prod.yml up -d --build
-            echo "==> Health check (aguardando 15s)..."
-            sleep 15
-            curl -sf https://avatartea.axiodev.cloud/api/health || echo "WARN: health check falhou"
+      - name: Fazer deploy
+        working-directory: /var/www/avatartea
+        run: |
+          cp Backend/data/users.json /tmp/avatartea_users_backup.json 2>/dev/null || true
+          git fetch origin main
+          git reset --hard origin/main
+          [ -f /tmp/avatartea_users_backup.json ] && cp /tmp/avatartea_users_backup.json Backend/data/users.json
+          mkdir -p ./Backend/data
+          [ -f ./Backend/data/users.json ]  || echo '{"users":[]}'  > ./Backend/data/users.json
+          [ -f ./Backend/data/peis.json ]   || echo '{"peis":[]}'   > ./Backend/data/peis.json
+          [ -f ./Backend/data/alunos.json ] || echo '{"alunos":[]}' > ./Backend/data/alunos.json
+          docker compose -f docker-compose.prod.yml build avatartea-backend
+          docker compose -f docker-compose.prod.yml build avatartea-frontend
+          docker compose -f docker-compose.prod.yml up -d
+          sleep 15
+          curl -sf https://avatartea.axiodev.cloud/api/health || echo "WARN: health check falhou"
