@@ -1,0 +1,8 @@
+data/rag_store/
+data/*.jsonl
+data/users.json
+data/peis.json
+data/alunos.json
+__pycache__/
+*.pyc
+.env
