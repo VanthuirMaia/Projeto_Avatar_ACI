@@ -55,11 +55,10 @@ export async function buscarRespostaChat(
   if (aluno) {
     body.aluno_context = {
       nome: aluno.nome,
-      diagnostico: aluno.diagnostico,
       serie: aluno.serie,
       idade: aluno.idade,
-      observacoes: aluno.observacoes ?? "",
-      adaptacoes_preferidas: aluno.adaptacoesPreferidas ?? [],
+      observacoes: aluno.processosCognitivos ?? "",
+      adaptacoes_preferidas: aluno.adaptacoesSugeridas ?? [],
     };
   }
 
@@ -86,10 +85,10 @@ export async function adaptarAtividade(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         texto_original: textoOriginal,
-        diagnostico: aluno.diagnostico,
+        diagnostico: aluno.diagnostico ?? "",
         serie: aluno.serie,
-        observacoes: aluno.observacoes ?? "",
-        adaptacoes_preferidas: aluno.adaptacoesPreferidas ?? [],
+        observacoes: aluno.processosCognitivos ?? "",
+        adaptacoes_preferidas: aluno.adaptacoesSugeridas ?? [],
         age_group: idadeParaFaixaEtaria(aluno.idade),
       }),
     },

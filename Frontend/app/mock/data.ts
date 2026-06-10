@@ -2,12 +2,12 @@ export interface Aluno {
   id: string;
   nome: string;
   foto?: string;
-  diagnostico: string;
+  diagnostico?: string;
   cid?: string;
   serie: string;
   idade: number;
-  observacoes?: string;
-  adaptacoesPreferidas?: string[];
+  processosCognitivos?: string;
+  adaptacoesSugeridas?: string[];
 }
 
 export interface AtividadeAdaptada {
@@ -36,13 +36,11 @@ export const mockAlunos: Aluno[] = [
   {
     id: "1",
     nome: "João Silva",
-    diagnostico: "TEA",
-    cid: "F84.0",
     serie: "5º Ano",
     idade: 11,
-    observacoes:
+    processosCognitivos:
       "João tem excelente memória visual. Prefere atividades estruturadas com começo, meio e fim bem definidos.",
-    adaptacoesPreferidas: [
+    adaptacoesSugeridas: [
       "Linguagem simplificada",
       "Recursos visuais",
       "Tempo estendido",
@@ -51,13 +49,11 @@ export const mockAlunos: Aluno[] = [
   {
     id: "2",
     nome: "Maria Santos",
-    diagnostico: "TDAH",
-    cid: "F90.0",
     serie: "4º Ano",
     idade: 10,
-    observacoes:
+    processosCognitivos:
       "Maria se beneficia de pausas regulares durante atividades longas. Responde bem a reforço positivo imediato.",
-    adaptacoesPreferidas: [
+    adaptacoesSugeridas: [
       "Atividades curtas",
       "Elementos interativos",
       "Checklist visual",
@@ -66,13 +62,11 @@ export const mockAlunos: Aluno[] = [
   {
     id: "3",
     nome: "Pedro Oliveira",
-    diagnostico: "Dislexia",
-    cid: "F81.0",
     serie: "6º Ano",
     idade: 12,
-    observacoes:
+    processosCognitivos:
       "Pedro tem dificuldade com textos longos e palavras complexas. Usa fonte OpenDyslexic em casa.",
-    adaptacoesPreferidas: [
+    adaptacoesSugeridas: [
       "Fonte adaptada",
       "Espaçamento aumentado",
       "Áudio disponível",
@@ -81,13 +75,11 @@ export const mockAlunos: Aluno[] = [
   {
     id: "4",
     nome: "Ana Costa",
-    diagnostico: "Síndrome de Asperger",
-    cid: "F84.5",
     serie: "7º Ano",
     idade: 13,
-    observacoes:
+    processosCognitivos:
       "Ana tem interesse especial em ciências. Pode precisar de apoio em atividades que exigem interpretação de expressões faciais ou linguagem figurada.",
-    adaptacoesPreferidas: [
+    adaptacoesSugeridas: [
       "Instruções explícitas",
       "Exemplos concretos",
       "Estrutura previsível",

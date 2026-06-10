@@ -334,11 +334,10 @@ def gerar_resposta(topic: str, age_group: str, aluno_context: dict | None = None
             aluno_section = (
                 f"\n\nPERFIL DO ALUNO:\n"
                 f"- Nome: {aluno_context.get('nome', 'não informado')}\n"
-                f"- Diagnóstico: {aluno_context.get('diagnostico', 'não informado')}\n"
                 f"- Série: {aluno_context.get('serie', 'não informada')}\n"
                 f"- Idade: {aluno_context.get('idade', '?')} anos\n"
-                f"- Observações: {aluno_context.get('observacoes', 'nenhuma')}\n"
-                f"- Adaptações preferidas: {adaptacoes}\n"
+                f"- Processos cognitivos: {aluno_context.get('observacoes', 'não informado')}\n"
+                f"- Adaptações sugeridas: {adaptacoes}\n"
                 f"Personalize a resposta considerando esse perfil específico."
             )
 
@@ -827,12 +826,10 @@ def create_aluno():
         "professor_id":          jwt["id"],
         "professor_nome":        jwt["nome"],
         "nome":                  nome,
-        "diagnostico":           data.get("diagnostico", "").strip(),
-        "cid":                   data.get("cid", "").strip(),
         "serie":                 data.get("serie", "").strip(),
         "idade":                 int(data.get("idade", 0)),
-        "observacoes":           data.get("observacoes", "").strip(),
-        "adaptacoesPreferidas":  data.get("adaptacoesPreferidas", []),
+        "processosCognitivos":   data.get("processosCognitivos", "").strip(),
+        "adaptacoesSugeridas":   data.get("adaptacoesSugeridas", []),
         "criado_em":             now,
         "atualizado_em":         now,
     }
@@ -860,7 +857,7 @@ def update_aluno(aluno_id: str):
         return jsonify({"error": "Acesso negado."}), 403
 
     data = request.get_json(force=True) or {}
-    fields = ("nome", "diagnostico", "cid", "serie", "idade", "observacoes", "adaptacoesPreferidas")
+    fields = ("nome", "serie", "idade", "processosCognitivos", "adaptacoesSugeridas")
     for f in fields:
         if f in data:
             aluno[f] = data[f]

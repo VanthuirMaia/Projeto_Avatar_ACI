@@ -42,10 +42,8 @@ export default function StudentsPage() {
     listarPEIs().then((lista) => setTotalPEIs(lista.length)).catch(() => setTotalPEIs(0));
   }, []);
 
-  const filtered = alunos.filter(
-    (a) =>
-      a.nome.toLowerCase().includes(search.toLowerCase()) ||
-      a.diagnostico.toLowerCase().includes(search.toLowerCase())
+  const filtered = alunos.filter((a) =>
+    a.nome.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSave = async (dados: Omit<Aluno, "id">) => {
@@ -186,27 +184,29 @@ export default function StudentsPage() {
               <div className="bg-card rounded-lg p-4 shadow-md border border-border mb-4">
                 <h3 className="font-bold text-lg text-center">{aluno.nome}</h3>
                 <p className="text-sm text-center text-muted-foreground">{aluno.idade} anos</p>
-                <div className="flex justify-center mt-2">
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${diagBadge(aluno.diagnostico)}`}>
-                    {aluno.diagnostico}
-                  </span>
-                </div>
+                {aluno.diagnostico && (
+                  <div className="flex justify-center mt-2">
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${diagBadge(aluno.diagnostico)}`}>
+                      {aluno.diagnostico}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {aluno.adaptacoesPreferidas?.length ? (
+              {aluno.adaptacoesSugeridas?.length ? (
                 <div className="mb-4">
                   <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">
                     Adaptações
                   </p>
                   <div className="flex flex-wrap gap-1">
-                    {aluno.adaptacoesPreferidas.slice(0, 3).map((a, j) => (
+                    {aluno.adaptacoesSugeridas.slice(0, 3).map((a, j) => (
                       <span key={j} className="text-xs px-2 py-1 bg-secondary/10 text-secondary rounded-full">
                         {a}
                       </span>
                     ))}
-                    {aluno.adaptacoesPreferidas.length > 3 && (
+                    {aluno.adaptacoesSugeridas.length > 3 && (
                       <span className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded-full">
-                        +{aluno.adaptacoesPreferidas.length - 3}
+                        +{aluno.adaptacoesSugeridas.length - 3}
                       </span>
                     )}
                   </div>

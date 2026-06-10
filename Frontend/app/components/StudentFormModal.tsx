@@ -10,16 +10,6 @@ const SERIES: string[] = [
   "1º Ano EM", "2º Ano EM", "3º Ano EM",
 ];
 
-const DIAGNOSTICOS: string[] = [
-  "TEA",
-  "TDAH",
-  "Dislexia",
-  "Síndrome de Asperger",
-  "Deficiência Intelectual",
-  "Altas Habilidades / Superdotação",
-  "Outro",
-];
-
 const ADAPTACOES_SUGERIDAS: string[] = [
   "Linguagem simplificada",
   "Recursos visuais",
@@ -49,23 +39,14 @@ export default function StudentFormModal({ aluno, onSave, onClose, erroExterno }
   const isEdit = Boolean(aluno);
 
   const [nome, setNome] = useState(aluno?.nome ?? "");
-  const [diagnostico, setDiagnostico] = useState(
-    aluno ? (DIAGNOSTICOS.includes(aluno.diagnostico) ? aluno.diagnostico : "Outro") : ""
-  );
-  const [diagnosticoCustom, setDiagnosticoCustom] = useState(
-    aluno && !DIAGNOSTICOS.includes(aluno.diagnostico) ? aluno.diagnostico : ""
-  );
-  const [cid, setCid] = useState(aluno?.cid ?? "");
   const [serie, setSerie] = useState(aluno?.serie ?? "");
   const [idade, setIdade] = useState(aluno?.idade?.toString() ?? "");
-  const [observacoes, setObservacoes] = useState(aluno?.observacoes ?? "");
-  const [adaptacoes, setAdaptacoes] = useState<string[]>(aluno?.adaptacoesPreferidas ?? []);
+  const [processosCognitivos, setProcessosCognitivos] = useState(aluno?.processosCognitivos ?? "");
+  const [adaptacoes, setAdaptacoes] = useState<string[]>(aluno?.adaptacoesSugeridas ?? []);
   const [tagInput, setTagInput] = useState("");
 
-  const diagnosticoFinal = diagnostico === "Outro" ? diagnosticoCustom.trim() : diagnostico;
   const isValid =
     nome.trim().length >= 2 &&
-    diagnosticoFinal.length > 0 &&
     serie.length > 0 &&
     Number(idade) >= 4;
 
@@ -89,12 +70,10 @@ export default function StudentFormModal({ aluno, onSave, onClose, erroExterno }
     if (!isValid) return;
     onSave({
       nome: nome.trim(),
-      diagnostico: diagnosticoFinal,
-      cid: cid.trim() || undefined,
       serie,
       idade: parseInt(idade),
-      observacoes: observacoes.trim() || undefined,
-      adaptacoesPreferidas: adaptacoes.length > 0 ? adaptacoes : undefined,
+      processosCognitivos: processosCognitivos.trim() || undefined,
+      adaptacoesSugeridas: adaptacoes.length > 0 ? adaptacoes : undefined,
     });
   };
 
@@ -133,45 +112,6 @@ export default function StudentFormModal({ aluno, onSave, onClose, erroExterno }
             />
           </div>
 
-          {/* Diagnóstico */}
-          <div>
-            <label className="block text-sm font-medium mb-1.5">
-              Diagnóstico <span className="text-destructive">*</span>
-            </label>
-            <select
-              value={diagnostico}
-              onChange={(e) => setDiagnostico(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background"
-            >
-              <option value="">Selecione...</option>
-              {DIAGNOSTICOS.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-            {diagnostico === "Outro" && (
-              <input
-                value={diagnosticoCustom}
-                onChange={(e) => setDiagnosticoCustom(e.target.value)}
-                placeholder="Descreva o diagnóstico"
-                className="mt-2 w-full px-3 py-2 text-sm border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background"
-              />
-            )}
-          </div>
-
-          {/* CID */}
-          <div>
-            <label className="block text-sm font-medium mb-1.5">
-              CID{" "}
-              <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-            </label>
-            <input
-              value={cid}
-              onChange={(e) => setCid(e.target.value)}
-              placeholder="ex: F84.0"
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background"
-            />
-          </div>
-
           {/* Série + Idade */}
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -206,25 +146,25 @@ export default function StudentFormModal({ aluno, onSave, onClose, erroExterno }
             </div>
           </div>
 
-          {/* Observações */}
+          {/* Processos cognitivos */}
           <div>
             <label className="block text-sm font-medium mb-1.5">
-              Observações{" "}
+              Processos cognitivos{" "}
               <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
             </label>
             <textarea
-              value={observacoes}
-              onChange={(e) => setObservacoes(e.target.value)}
-              placeholder="Pontos importantes sobre o aluno: rotinas, preferências, sensibilidades..."
+              value={processosCognitivos}
+              onChange={(e) => setProcessosCognitivos(e.target.value)}
+              placeholder="Descreva como o aluno processa informações: atenção, memória, linguagem, raciocínio..."
               rows={3}
               className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none bg-background"
             />
           </div>
 
-          {/* Adaptações preferidas */}
+          {/* Adaptações Sugeridas */}
           <div>
             <label className="block text-sm font-medium mb-1.5">
-              Adaptações preferidas{" "}
+              Adaptações Sugeridas{" "}
               <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
             </label>
 

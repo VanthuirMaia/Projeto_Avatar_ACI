@@ -106,10 +106,6 @@ export default function StudentDetailPage({
               <div className="flex gap-3 flex-wrap">
                 <span className="px-4 py-1.5 bg-white/20 rounded-full text-sm">{aluno.serie}</span>
                 <span className="px-4 py-1.5 bg-white/20 rounded-full text-sm">{aluno.idade} anos</span>
-                <span className="px-4 py-1.5 bg-white/20 rounded-full text-sm">{aluno.diagnostico}</span>
-                {aluno.cid && (
-                  <span className="px-4 py-1.5 bg-white/20 rounded-full text-sm">CID {aluno.cid}</span>
-                )}
               </div>
             </div>
 
@@ -182,17 +178,17 @@ export default function StudentDetailPage({
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="space-y-6">
           <div className="bg-card p-6 rounded-xl border border-border">
-            <h2 className="font-bold mb-3">Sobre</h2>
+            <h2 className="font-bold mb-3">Processos Cognitivos</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {aluno.observacoes || "Sem observações registradas."}
+              {aluno.processosCognitivos || "Sem processos cognitivos registrados."}
             </p>
           </div>
 
           <div className="bg-card p-6 rounded-xl border border-border">
-            <h2 className="font-bold mb-3">Adaptações preferidas</h2>
-            {aluno.adaptacoesPreferidas?.length ? (
+            <h2 className="font-bold mb-3">Adaptações Sugeridas</h2>
+            {aluno.adaptacoesSugeridas?.length ? (
               <div className="space-y-2">
-                {aluno.adaptacoesPreferidas.map((a, i) => (
+                {aluno.adaptacoesSugeridas.map((a, i) => (
                   <div key={i} className="text-sm px-3 py-2 bg-secondary/10 text-secondary rounded-lg">
                     {a}
                   </div>
