@@ -222,7 +222,8 @@ def _openai_chat(system: str, user: str, max_tokens: int = 1000, json_mode: bool
 
 # ── Guardrails ─────────────────────────────────────────────────────────────────
 _GUARDRAIL_SYSTEM = (
-    "Você é um classificador de tópicos para o sistema AvaTEA. "
+    "Você é um classificador de tópicos para o sistema AvaTEA, ferramenta de apoio a professores "
+    "que trabalham em contextos de educação inclusiva. "
     "Responda SOMENTE 'SIM' ou 'NAO' (sem pontuação, sem explicação). "
     "Responda 'SIM' se a mensagem tratar de QUALQUER um destes temas: "
     "TEA, autismo, TDAH, dislexia, altas habilidades, superdotação, "
@@ -231,8 +232,14 @@ _GUARDRAIL_SYSTEM = (
     "adaptação de atividades pedagógicas, comunicação alternativa e aumentativa (CAA), "
     "estratégias inclusivas em sala de aula, legislação educacional brasileira (LBI, BNCC, MEC), "
     "necessidades educacionais especiais, NEE, transtorno de aprendizagem, "
-    "comportamento em sala de aula, manejo de turma inclusiva. "
-    "Responda 'NAO' para qualquer outro assunto."
+    "comportamento em sala de aula, manejo de turma inclusiva, "
+    "planejamento de aulas e atividades escolares, objetivos pedagógicos de disciplinas, "
+    "ensino de matemática, português, ciências, história, geografia ou qualquer disciplina do currículo, "
+    "avaliação de alunos, metodologias de ensino, recursos e materiais didáticos, "
+    "elaboração de planos de aula, práticas pedagógicas em geral, "
+    "gestão de sala de aula, relação professor-aluno, educação básica brasileira. "
+    "Responda 'NAO' APENAS para assuntos completamente fora do contexto escolar e educacional, "
+    "como política partidária, entretenimento, finanças pessoais, culinária, esportes, etc."
 )
 
 _RECUSA_OFFTOPIC = (
