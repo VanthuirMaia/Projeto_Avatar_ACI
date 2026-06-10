@@ -123,7 +123,7 @@ export default function AdaptarAtividadePage() {
       const id = history.salvarAdaptacao({
         alunoId: aluno.id,
         alunoNome: aluno.nome,
-        alunodiagnostico: aluno.diagnostico,
+        alunodiagnostico: aluno.diagnostico ?? "",
         alunoSerie: aluno.serie,
         textoOriginal,
         textoAdaptado: adaptado,
