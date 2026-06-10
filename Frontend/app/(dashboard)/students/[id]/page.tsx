@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -25,15 +25,16 @@ import type { Aluno } from "../../../mock/data";
 export default function StudentDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const router = useRouter();
   const { alunos, editar, remover, setAlunoAtivo, hydrated } = useAlunos();
   const { adaptacoes } = useAdaptacoesHistory();
   const [editOpen, setEditOpen] = useState(false);
   const [peiAluno, setPeiAluno] = useState<PEIPayload | null>(null);
 
-  const aluno = alunos.find((a) => a.id === params.id);
+  const aluno = alunos.find((a) => a.id === id);
 
   useEffect(() => {
     if (!aluno) return;
