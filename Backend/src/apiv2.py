@@ -203,7 +203,7 @@ def _rag_context(query: str, n: int = 3) -> str:
     return ""
 
 
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "openai/gpt-5.4-mini")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.4-mini")
 
 def _openai_chat(system: str, user: str, max_tokens: int = 1000, json_mode: bool = False,
                  temperature: float = 0.7, timeout: float = 35.0) -> str:

@@ -331,9 +331,9 @@ export async function sugerirPEI(aluno: Aluno, signal?: AbortSignal): Promise<Su
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        diagnostico: aluno.diagnostico,
+        diagnostico: aluno.diagnostico ?? "",
         serie: aluno.serie,
-        observacoes: aluno.observacoes ?? "",
+        observacoes: aluno.processosCognitivos ?? "",
         age_group: idadeParaFaixaEtaria(aluno.idade),
       }),
     },
