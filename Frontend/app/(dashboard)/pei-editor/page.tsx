@@ -261,7 +261,7 @@ export default function PEIEditorPage() {
   <h1>Plano Educacional Individualizado (PEI)</h1>
   <div class="info">
     <span>Aluno:</span> ${escapeHtml(alunoAtual.nome)} &nbsp;|&nbsp;
-    <span>Diagnóstico:</span> ${escapeHtml(alunoAtual.diagnostico)} &nbsp;|&nbsp;
+    <span>Diagnóstico:</span> ${escapeHtml(alunoAtual.diagnostico ?? "")} &nbsp;|&nbsp;
     <span>Série:</span> ${escapeHtml(alunoAtual.serie)} &nbsp;|&nbsp;
     <span>Data:</span> ${new Date().toLocaleDateString("pt-BR")}
   </div>
